@@ -82,6 +82,15 @@ python -m airgap.experiments.acoustic_recv --in-dir in\recv --distance-cm 100 `
     --expected-payload "AIRGAP 20자 테스트문자열"
 ```
 
+### M2 — LT 파운틴 부호
+
+물리 채널 없이 알고리즘만으로 검증한다. 하드웨어가 전혀 필요 없다.
+
+```powershell
+python -m airgap.experiments.fountain_overhead --repeats 20
+# data/raw/<run_id>_fountain_overhead/trials.csv 에 유실률별 복원 성공 여부·오버헤드 기록
+```
+
 노트북 드라이버가 고쳐지면 `--out-dir`/`--in-dir` 없이 위쪽 라이브 경로를 그대로
 다시 돌려 성공률을 비교한다 (자세한 배경은 `FINDINGS.md` 2026-08-20 항목).
 
