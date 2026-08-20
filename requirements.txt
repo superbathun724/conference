@@ -1,0 +1,12 @@
+numpy>=1.26
+scipy>=1.11
+sounddevice>=0.4.6
+soundfile>=0.12
+opencv-python>=4.9
+qrcode[pil]>=7.4
+pyzbar>=0.1.9
+matplotlib>=3.8
+pandas>=2.1
+pyyaml>=6.0
+pytest>=7.4
+ruff>=0.3

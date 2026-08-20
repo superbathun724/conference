@@ -1,0 +1,10 @@
+# 음향 FSK 채널 파라미터. airgap/channels/acoustic_fsk.py의 AcousticFskConfig와 1:1 대응.
+sample_rate_hz: 44100
+freq0_hz: 3000.0
+freq1_hz: 4000.0
+symbol_duration_ms: 20.0
+amplitude: 0.5
+edge_ramp_ms: 2.0
+preamble_detect_threshold: 0.3
+input_device: null
+output_device: null
