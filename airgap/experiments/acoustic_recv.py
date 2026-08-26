@@ -23,6 +23,7 @@ ffmpeg로 변환해야 한다: `ffmpeg -i in.m4a -ar 44100 -ac 1 out.wav`
 import argparse
 import csv
 import logging
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -132,13 +133,26 @@ def main() -> None:
             raise SystemExit(f"{args.in_dir}에 파일이 없다")
         trials = len(trial_files)
         log.info(
-            "설정(파일 경유): run_id=%s in_dir=%s trials=%d distance_cm=%s config=%s",
+            "설정(파일 경유): run_id=%s in_dir=%s(절대경로: %s) trials=%d distance_cm=%s config=%s",
             run_id,
             args.in_dir,
+            args.in_dir.resolve(),
             trials,
             args.distance_cm,
             args.config,
         )
+        # 폴더를 잘못 찾아 예전 파일을 다시 읽는 실수를 실행 도중에 바로 알아챌 수 있게,
+        # 처리 전에 각 파일의 실제 수정 시각을 눈에 보이게 나열한다.
+        for p in trial_files:
+            mtime = datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            log.info("  - %s (수정 시각 %s, %d bytes)", p.name, mtime, p.stat().st_size)
+        # 원본 파일은 data/raw 바깥(in_dir)에 있어 언제든 사용자가 지우거나 덮어쓸 수 있다.
+        # 이 실행에 실제로 어떤 원본이 쓰였는지 나중에 검증할 수 있도록 run_dir 밑에 복사해 둔다
+        # (CLAUDE.md 규칙: 측정 원본은 보존한다).
+        archive_dir = run_dir / "src"
+        archive_dir.mkdir()
+        for p in trial_files:
+            shutil.copy2(p, archive_dir / p.name)
     else:
         trial_files = None
         trials = args.trials

@@ -1,0 +1,8 @@
+# 화면 QR 채널 파라미터. airgap/channels/screen_qr.py의 ScreenQrConfig와 1:1 대응.
+box_size: 8
+border: 4
+error_correction: M
+display_ms: 500.0
+fullscreen: true
+camera_index: null
+capture_timeout_s: 2.0

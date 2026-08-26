@@ -1,0 +1,4 @@
+# c 파라미터 스윕용 설정. chunk_size_bytes·delta는 config/fountain.yaml과 동일하게 고정하고 c만 바꾼다.
+chunk_size_bytes: 16
+c: 0.2
+delta: 0.05

@@ -9,6 +9,8 @@ import pytest
 import soundfile as sf
 
 from airgap.channels.acoustic_fsk import AcousticFsk, AcousticFskConfig
+from airgap.channels.screen_flicker import ScreenFlicker, ScreenFlickerConfig
+from airgap.channels.screen_qr import ScreenQr, ScreenQrConfig
 from airgap.core import frame
 from airgap.core.bits import bits_to_bytes, bytes_to_bits
 from airgap.core.channel import loopback
@@ -16,6 +18,8 @@ from airgap.core.metrics import bit_error_rate
 
 CHANNEL_FACTORIES = {
     "acoustic_fsk": lambda: AcousticFsk(AcousticFskConfig()),
+    "screen_flicker": lambda: ScreenFlicker(ScreenFlickerConfig()),
+    "screen_qr": lambda: ScreenQr(ScreenQrConfig()),
 }
 
 

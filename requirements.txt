@@ -10,3 +10,4 @@ pandas>=2.1
 pyyaml>=6.0
 pytest>=7.4
 ruff>=0.3
+rich>=13.7  # M5 데모 UI Tier 1(터미널 HUD)용 — docs/DEMO_UI_PLAN.md 참고, 측정/알고리즘과 무관한 표시 도구

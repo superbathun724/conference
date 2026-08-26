@@ -1,0 +1,8 @@
+# 화면 밝기 변조 채널 파라미터. airgap/channels/screen_flicker.py의 ScreenFlickerConfig와 1:1 대응.
+fps: 30.0
+symbol_duration_ms: 100.0
+level0: 0.05
+level1: 0.95
+preamble_detect_threshold: 0.3
+camera_index: null
+fullscreen: true
