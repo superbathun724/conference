@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>에어갭 실측 절차 안내서</title>
+<style>
+:root{
+  --paper:#F7F8F9; --card:#FFFFFF; --ink:#16202B; --soft:#5A6B78;
+  --rule:#D6DDE2; --sound:#0B6E7A; --light:#A8146B; --warn:#8A5A00;
+  --warn-bg:#FFF7E0; --ok:#1F6B3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Segoe UI",sans-serif;
+  line-height:1.7; font-size:16px;
+}
+code,kbd,.mono{font-family:"D2Coding","Consolas","Menlo",monospace}
+
+.wrap{display:grid;grid-template-columns:250px 1fr;gap:0;max-width:1400px;margin:0 auto}
+
+/* 목차 */
+nav{
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:2rem 1.2rem;border-right:1px solid var(--rule);background:var(--paper);
+}
+nav h1{font-size:1.05rem;line-height:1.4;margin-bottom:.3rem}
+nav .date{font-size:.75rem;color:var(--soft);margin-bottom:1.4rem}
+nav a{display:block;color:var(--soft);text-decoration:none;font-size:.85rem;padding:.3rem 0;border-left:2px solid transparent;padding-left:.6rem}
+nav a:hover{color:var(--ink);border-left-color:var(--ink)}
+nav a.head{color:var(--ink);font-weight:700;margin-top:.9rem;font-size:.9rem}
+nav .print{margin-top:1.6rem;font-size:.78rem;color:var(--soft)}
+
+main{padding:2.6rem 3rem 6rem;max-width:960px}
+
+h2{font-size:1.85rem;line-height:1.3;margin:3.2rem 0 .5rem;padding-top:.6rem;border-top:2px solid var(--ink);letter-spacing:-.02em}
+h2:first-of-type{margin-top:0}
+h2 .num{display:block;font-size:.8rem;color:var(--soft);font-weight:400;letter-spacing:.02em;margin-bottom:.3rem}
+h3{font-size:1.22rem;margin:2rem 0 .6rem}
+h4{font-size:1rem;margin:1.3rem 0 .4rem;color:var(--soft)}
+p{margin:.6rem 0;max-width:72ch}
+ul,ol{margin:.6rem 0 .6rem 1.2rem}
+li{margin:.3rem 0;max-width:70ch}
+
+.lede{font-size:1.05rem;color:var(--soft);max-width:66ch;margin-bottom:1rem}
+
+table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.9rem;background:var(--card)}
+th,td{text-align:left;padding:.6rem .75rem;border-bottom:1px solid var(--rule);vertical-align:top}
+th{background:#EDF1F3;font-size:.8rem;color:var(--soft);font-weight:700;border-bottom:2px solid var(--ink)}
+td.c{text-align:center}
+tbody tr:last-child td{border-bottom:none}
+
+pre{
+  background:#16202B;color:#E6EDF2;padding:1rem 1.1rem;border-radius:5px;
+  overflow-x:auto;font-size:.845rem;line-height:1.65;margin:.8rem 0;
+  font-family:"D2Coding","Consolas","Menlo",monospace;
+}
+pre .c{color:#8FA6B4}
+pre .v{color:#7FD1C4}
+p code{background:#E7ECEF;padding:.1em .4em;border-radius:3px;font-size:.88em}
+
+.box{border:1px solid var(--rule);border-left:3px solid var(--ink);background:var(--card);padding:.9rem 1.1rem;margin:1rem 0;font-size:.92rem}
+.box.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+.box.warn b{color:var(--warn)}
+.box.new{border-left-color:var(--ok)}
+.box .t{font-weight:700;display:block;margin-bottom:.25rem}
+
+.meta{display:flex;flex-wrap:wrap;gap:1.6rem;margin:.8rem 0 1.2rem;padding:.8rem 1rem;background:var(--card);border:1px solid var(--rule)}
+.meta div{font-size:.85rem}
+.meta .k{color:var(--soft);font-size:.75rem;display:block}
+.meta .v{font-weight:700}
+
+.tag{display:inline-block;font-size:.72rem;padding:.12em .6em;border-radius:999px;border:1px solid currentColor;vertical-align:middle}
+.tag.sound{color:var(--sound)} .tag.light{color:var(--light)} .tag.none{color:var(--soft)}
+
+.route{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin:1rem 0}
+.route div{background:var(--card);border:1px solid var(--rule);padding:.8rem .9rem;font-size:.86rem}
+.route .n{font-size:.72rem;color:var(--soft);display:block;margin-bottom:.2rem}
+.route b{display:block;margin-bottom:.3rem}
+
+/* 체크박스 */
+.check{list-style:none;margin-left:0}
+.check li{position:relative;padding-left:1.9rem;margin:.45rem 0}
+.check li::before{
+  content:"";position:absolute;left:0;top:.35em;
+  width:1.05rem;height:1.05rem;border:1.5px solid var(--soft);border-radius:2px;background:var(--card);
+}
+
+details{border:1px solid var(--rule);background:var(--card);padding:.7rem .95rem;margin:.7rem 0;font-size:.9rem}
+summary{cursor:pointer;font-weight:700;color:var(--soft)}
+details[open] summary{margin-bottom:.5rem;color:var(--ink)}
+
+.sheet{page-break-before:always}
+.sheet table td{height:2.1rem}
+.blank{color:var(--rule)}
+
+@media (max-width:900px){
+  .wrap{grid-template-columns:1fr}
+  nav{position:static;height:auto;border-right:none;border-bottom:1px solid var(--rule)}
+  main{padding:1.6rem 1.2rem 4rem}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  .wrap{display:block} nav{display:none} main{padding:0;max-width:none}
+  pre{background:#F0F2F4;color:#16202B;border:1px solid var(--rule)}
+  h2{page-break-after:avoid} table,pre,.box{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav>
+  <h1>에어갭 실측 절차 안내서</h1>
+  <div class="date mono">2026-09-04 · v2</div>
+  <a href="#a0" class="head">0 · 시작 전 점검</a>
+  <a href="#a1" class="head">1 · 무엇을 잴 수 있나</a>
+  <a href="#a2" class="head">2 · 기기 없이 (노트북)</a>
+  <a href="#a2-1">2.1 조각 크기 최적점</a>
+  <a href="#a2-2">2.2 QR 통합 재측정</a>
+  <a href="#a3" class="head">3 · 폰 2대 · 음향</a>
+  <a href="#a3-1">3.1 준비물과 배치</a>
+  <a href="#a3-2">3.2 실행 절차</a>
+  <a href="#a3-3">3.3 고정 vs 손</a>
+  <a href="#a4" class="head">4 · 폰 2대 · 가시광</a>
+  <a href="#a4-1">4.1 동영상 만들기</a>
+  <a href="#a4-2">4.2 재생·녹화</a>
+  <a href="#a4-3">4.3 판정</a>
+  <a href="#a5" class="head">5 · 노트북 화면 경로</a>
+  <a href="#a6" class="head">6 · 웹캠 실시간 경로</a>
+  <a href="#a7" class="head">7 · 격자 스윕</a>
+  <a href="#a8" class="head">8 · 거리 · 차폐 · 각도</a>
+  <a href="#a9" class="head">9 · 자주 나는 문제</a>
+  <a href="#a10" class="head">10 · 일정</a>
+  <a href="#a11" class="head">11 · 기록지 (인쇄용)</a>
+  <div class="print">브라우저에서 <kbd>Ctrl</kbd>+<kbd>P</kbd>로 인쇄하면 기록지까지 그대로 나옵니다.</div>
+</nav>
+
+<main>
+
+<!-- ═══════ 0 ═══════ -->
+<h2 id="a0"><span class="num">0</span>시작 전 점검</h2>
+<p class="lede">여기를 통과하지 못하면 아래 어느 것도 진행할 수 없습니다. 3분이면 됩니다.</p>
+
+<pre><span class="c"># 변경분(base45 · 격자 · 동영상 출력)을 프로젝트 폴더에 덮어쓴 뒤</span>
+cd ~\Desktop\project
+.\.venv\Scripts\Activate.ps1
+chcp 65001
+pytest</pre>
+
+<div class="box warn">
+<span class="t">134개가 통과해야 합니다</span>
+숫자가 다르거나 실패가 하나라도 있으면 <b>측정을 시작하지 마세요.</b> 이 상태에서 잰 값은 나중에 다시 재야 합니다.
+</div>
+
+<h4>기기 확인</h4>
+<pre><span class="c"># 웹캠이 있는지</span>
+python -c "import cv2; c=cv2.VideoCapture(0); print(c.isOpened()); c.release()"
+
+<span class="c"># 노트북 오디오 장치가 살아났는지 (8월에 고장났던 것)</span>
+python -c "import sounddevice as sd; print(sd.query_devices())"</pre>
+<p>둘 다 안 되어도 괜찮습니다. 아래 3장과 4장은 <b>안드로이드 두 대만으로</b> 돌아갑니다.</p>
+
+<!-- ═══════ 1 ═══════ -->
+<h2 id="a1"><span class="num">1</span>무엇을 잴 수 있나</h2>
+
+<table>
+<thead><tr><th>장</th><th>측정 항목</th><th>필요 기기</th><th>소요</th><th>없으면</th></tr></thead>
+<tbody>
+<tr><td class="c mono">2</td><td>조각 크기 최적점, QR 통합 재측정 <span class="tag none">기기 불필요</span></td><td>노트북만</td><td>30분</td><td>보고서 5.1절 공백</td></tr>
+<tr><td class="c mono">3</td><td>음향 1m 성공률 <span class="tag sound">M1 완료조건</span></td><td>폰 2대</td><td>1시간</td><td><b>M1 미완</b></td></tr>
+<tr><td class="c mono">4</td><td>QR·밝기변조 비교 <span class="tag light">M3 완료조건</span></td><td>폰 2대</td><td>1.5시간</td><td><b>M3 미완, 핵심 표 공백</b></td></tr>
+<tr><td class="c mono">5</td><td>같은 항목, 노트북 화면 경로</td><td>노트북+폰 1대</td><td>1시간</td><td>4장으로 대체 가능</td></tr>
+<tr><td class="c mono">6</td><td>실시간 경로 교차검증</td><td>웹캠</td><td>30분</td><td>방법론 신뢰도만 감소</td></tr>
+<tr><td class="c mono">7</td><td>격자 1/2/3 한계점</td><td>4장과 동일</td><td>40분</td><td>새 코드가 놀게 됨</td></tr>
+<tr><td class="c mono">8</td><td>거리·차폐·각도</td><td>4장과 동일</td><td>가변</td><td>발표 임팩트 감소</td></tr>
+</tbody>
+</table>
+
+<div class="box new">
+<span class="t">이번에 새로 가능해진 것</span>
+지금까지 화면 채널(QR·밝기변조)은 <b>노트북 화면으로만</b> 표시할 수 있었습니다. 음향처럼 파일로 써내는 경로를 추가해서, 이제 <b>안드로이드 두 대만으로도</b> 가시광 채널을 측정할 수 있습니다(4장). 노트북은 동영상을 만들고 결과를 판정하는 역할만 합니다.
+</div>
+
+<h3>세 가지 측정 경로</h3>
+<div class="route">
+  <div><span class="n">경로 A · 파일 경유</span><b>안드로이드 2대</b>노트북이 파일을 만들고 판정만 합니다. 폰 A 재생 → 폰 B 녹음·녹화. <b>드라이버·웹캠 불필요.</b></div>
+  <div><span class="n">경로 B · 화면 + 녹화</span><b>노트북 + 폰 1대</b>노트북 화면이 신호를 내고 폰이 녹화합니다. 화면 채널만 해당.</div>
+  <div><span class="n">경로 C · 실시간</span><b>노트북 + 웹캠/마이크</b>가장 빠르지만 장비가 살아 있어야 합니다.</div>
+</div>
+<p>어느 경로든 <b>판정 코드는 완전히 같습니다.</b> 그래서 결과를 직접 비교할 수 있고, 두 경로로 같은 조건을 재면 그 자체가 방법론 검증이 됩니다.</p>
+
+<!-- ═══════ 2 ═══════ -->
+<h2 id="a2"><span class="num">2</span>기기 없이 · 노트북만</h2>
+<div class="meta">
+  <div><span class="k">필요 기기</span><span class="v">없음</span></div>
+  <div><span class="k">소요 시간</span><span class="v">30분</span></div>
+  <div><span class="k">우선순위</span><span class="v">1순위 — 지금 바로</span></div>
+</div>
+
+<h3 id="a2-1">2.1 조각 크기 최적점 찾기</h3>
+<p>보고서에 "최적점이 존재한다"고 써두고 값이 비어 있는 부분입니다. 같은 원본을 잘게 쪼개면 K가 커져 파운틴 오버헤드는 줄지만, 조각이 작아져 프레임 머리말 7바이트의 비중이 올라갑니다. <b>두 효과가 반대 방향이라 어딘가 최적점이 있습니다.</b></p>
+
+<p><code>config\fountain.yaml</code>의 <code>chunk_size_bytes</code>를 아래 네 값으로 바꿔가며 네 번 실행합니다.</p>
+<pre>python -m airgap.experiments.fountain_overhead --payload-bytes 1600 --repeats 20</pre>
+
+<table>
+<thead><tr><th>조각 크기</th><th>K</th><th>파운틴 오버헤드</th><th>프레임 효율</th><th>실효 손해 = 오버헤드 ÷ 효율</th></tr></thead>
+<tbody>
+<tr><td class="mono">8 B</td><td class="mono">200</td><td class="blank">측정</td><td class="mono">8/15 = 0.53</td><td class="blank">계산</td></tr>
+<tr><td class="mono">16 B</td><td class="mono">100</td><td class="blank">측정</td><td class="mono">16/23 = 0.70</td><td class="blank">계산</td></tr>
+<tr><td class="mono">32 B</td><td class="mono">50</td><td class="blank">측정</td><td class="mono">32/39 = 0.82</td><td class="blank">계산</td></tr>
+<tr><td class="mono">64 B</td><td class="mono">25</td><td class="blank">측정</td><td class="mono">64/71 = 0.90</td><td class="blank">계산</td></tr>
+</tbody>
+</table>
+<p>마지막 열이 가장 작은 행이 최적점입니다. 그래프 한 장이 보고서에 그대로 들어갑니다.</p>
+
+<h3 id="a2-2">2.2 QR 통합 실험 재측정</h3>
+<p>기존 수치(K=10, 오버헤드 2.2~2.6배)는 base64 시절 것이라 지금 코드와 비교가 안 됩니다.</p>
+<pre>python -m airgap.experiments.fountain_over_qr --repeats 20</pre>
+
+<!-- ═══════ 3 ═══════ -->
+<h2 id="a3"><span class="num">3</span>안드로이드 2대 · 음향 채널 <span class="tag sound">최우선</span></h2>
+<div class="meta">
+  <div><span class="k">필요 기기</span><span class="v">노트북 1 + 폰 2</span></div>
+  <div><span class="k">소요 시간</span><span class="v">1시간</span></div>
+  <div><span class="k">완료 조건</span><span class="v">1m에서 10회 중 8회</span></div>
+  <div><span class="k">경로</span><span class="v">A · 파일 경유</span></div>
+</div>
+<p class="lede">M1이 이 프로젝트의 최소 성공선인데 아직 안 채워졌습니다. 다른 무엇보다 먼저 하세요. <b>노트북 오디오 드라이버와 무관하게</b> 진행됩니다.</p>
+
+<h3 id="a3-1">3.1 준비물과 배치</h3>
+<table>
+<thead><tr><th>항목</th><th>세부</th></tr></thead>
+<tbody>
+<tr><td>폰 A (재생)</td><td>WAV 재생 가능한 아무 음악 앱. <b>볼륨 최대, 이퀄라이저·음장효과 전부 끄기</b></td></tr>
+<tr><td>폰 B (녹음)</td><td>삼성 「음성 녹음」 → 설정에서 <b>고음질(WAV)</b> 선택. 또는 Easy Voice Recorder</td></tr>
+<tr><td>거치대</td><td>★ 삼각대·책 더미·상자 무엇이든. <b>손으로 들지 마세요</b></td></tr>
+<tr><td>줄자</td><td>1m를 눈대중하지 말고 실제로 재세요</td></tr>
+<tr><td>장소</td><td>조용한 교실. 에어컨·환풍기 끄기</td></tr>
+</tbody>
+</table>
+<p>배치는 <b>폰 A의 스피커와 폰 B의 마이크가 서로 마주보게</b>, 같은 높이로 1m. 스피커와 마이크가 폰의 어느 쪽에 있는지 미리 확인하세요. 보통 아래쪽 모서리입니다.</p>
+
+<h3 id="a3-2">3.2 실행 절차</h3>
+
+<h4>① 노트북에서 WAV 10개 만들기</h4>
+<pre>python -m airgap.experiments.acoustic_send --trials 10 --out-dir out\send</pre>
+<p><code>out\send\trial_01.wav</code> ~ <code>trial_10.wav</code>가 생깁니다. 하나가 약 6.1초입니다.</p>
+
+<h4>② 폰 A로 옮기기</h4>
+<p>USB 케이블로 복사하는 것이 가장 확실합니다. 카카오톡·메일로 보내면 <b>파일이 재압축되어 신호가 망가질 수 있습니다.</b></p>
+
+<h4>③ 시행 10회</h4>
+<ol>
+<li>폰 B 녹음 시작</li>
+<li>1~2초 기다림 (앞쪽 무음이 있어야 프리앰블 검출이 안정적입니다)</li>
+<li>폰 A에서 <code>trial_01.wav</code> 재생</li>
+<li>끝나면 1~2초 더 기다린 뒤 녹음 정지·저장</li>
+<li><code>trial_02</code>부터 <code>trial_10</code>까지 반복</li>
+</ol>
+<div class="box">
+<span class="t">파일 이름을 반드시 맞추세요</span>
+녹음 파일을 <code>in\recv\trial_01.wav</code> … <code>trial_10.wav</code>로 저장합니다. 이름 순서가 곧 시행 번호입니다. 순서가 어긋나면 어느 시행이 실패했는지 알 수 없게 됩니다.
+</div>
+
+<h4>④ 노트북에서 판정</h4>
+<pre>python -m airgap.experiments.acoustic_recv --in-dir in\recv <span class="v">--distance-cm 100</span> `
+    --expected-payload "AIRGAP 20자 테스트문자열"</pre>
+
+<div class="box warn">
+<span class="t">--distance-cm 를 실제 거리로 고쳤는지 확인</span>
+8월에 이 값을 예시 그대로 두고 실행해서 같은 녹음이 서로 다른 거리로 기록된 사고가 있었습니다. <b>실행 직후 콘솔 첫 줄에 찍히는 distance_cm 값을 눈으로 확인</b>하고 기록지에 적으세요.
+</div>
+
+<h3 id="a3-3">3.3 함께 해야 할 것 — 고정 vs 손</h3>
+<p>10cm에서 40%가 나온 원인 가설이 <b>"손으로 든 기기의 미세한 흔들림"</b>입니다. 이 가설을 검증하려면 조건을 하나만 바꿔 다시 재야 합니다.</p>
+<table>
+<thead><tr><th>조건</th><th>거리</th><th>기기</th><th>횟수</th><th>목적</th></tr></thead>
+<tbody>
+<tr><td>고정</td><td>1 m</td><td>거치대</td><td>10회</td><td>M1 완료 조건</td></tr>
+<tr><td>손</td><td>1 m</td><td>손으로 들기</td><td>10회</td><td>가설 검증</td></tr>
+</tbody>
+</table>
+<p>두 성공률의 차이가 그대로 보고서 5.4절의 답이 됩니다. <b>차이가 없어도 결과입니다</b> — 그러면 두 번째 가설(프리앰블 검출 임계값의 정규화 방식)이 남습니다.</p>
+
+<!-- ═══════ 4 ═══════ -->
+<h2 id="a4"><span class="num">4</span>안드로이드 2대 · 가시광 채널 <span class="tag light">M3 완료조건</span></h2>
+<div class="meta">
+  <div><span class="k">필요 기기</span><span class="v">노트북 1 + 폰 2</span></div>
+  <div><span class="k">소요 시간</span><span class="v">1.5시간</span></div>
+  <div><span class="k">경로</span><span class="v">A · 파일 경유</span></div>
+  <div><span class="k">상태</span><span class="v">이번에 새로 가능</span></div>
+</div>
+<p class="lede">폰 A가 신호 동영상을 전체화면으로 재생하고, 폰 B가 그것을 녹화합니다. 노트북 화면도 웹캠도 필요 없습니다.</p>
+
+<h3 id="a4-1">4.1 노트북에서 동영상 만들기</h3>
+<pre><span class="c"># 동적 QR — 대조군(격자 1)</span>
+python -m airgap.experiments.screen_qr_send --out-dir out\qr --trials 5 --grid 1
+
+<span class="c"># 밝기 변조 — 같은 메시지로</span>
+python -m airgap.experiments.screen_flicker_send --out-dir out\flicker --trials 10</pre>
+
+<p>동영상은 30fps로 만들어집니다. 한 화면을 <code>display_ms</code>만큼 유지하도록 같은 프레임을 반복해 넣기 때문에, 폰 재생기가 프레임률을 바꾸지 않는 한 타이밍이 그대로 보존됩니다.</p>
+
+<table>
+<thead><tr><th>채널</th><th>시행당 길이</th><th>10회 총 재생</th><th>비고</th></tr></thead>
+<tbody>
+<tr><td>동적 QR</td><td class="mono">약 30초</td><td class="mono">5분</td><td>기본 메시지는 K=2라 실제로는 몇 초 만에 복원됩니다</td></tr>
+<tr><td>밝기 변조</td><td class="mono">30.4초</td><td class="mono">5분</td><td>304비트 × 100ms. 짧게 하려면 <code>--message "AIRGAP"</code> (10.4초)</td></tr>
+</tbody>
+</table>
+
+<div class="box warn">
+<span class="t">두 채널의 메시지는 반드시 같아야 합니다</span>
+QR과 밝기 변조를 비교하는 것이 M3의 목적입니다. 메시지가 다르면 "무엇이 더 빠른가"의 비교가 성립하지 않습니다. 한쪽을 <code>--message "AIRGAP"</code>으로 짧게 했다면 <b>다른 쪽도 똑같이</b> 하세요.
+</div>
+
+<h3 id="a4-2">4.2 폰 A 재생 · 폰 B 녹화</h3>
+<h4>폰 A (재생) 설정</h4>
+<ul class="check">
+<li>동영상을 <b>전체화면</b>으로 재생 (갤러리 기본 재생기면 충분)</li>
+<li><b>화면 밝기 최대</b></li>
+<li><b>자동 회전 끄기</b> — 중간에 화면이 돌면 그 시행은 버려야 합니다</li>
+<li><b>화면 자동 꺼짐 시간을 넉넉하게</b> (설정 → 디스플레이 → 화면 자동 꺼짐 → 10분)</li>
+<li>알림 팝업이 화면을 가리지 않도록 <b>방해 금지 모드</b> 켜기</li>
+</ul>
+
+<h4>폰 B (녹화) 설정</h4>
+<ul class="check">
+<li><b>1080p 30fps</b> 로 설정 (60fps도 괜찮지만 파일이 커집니다)</li>
+<li><b>거치대에 고정</b>, 폰 A 화면과 정면으로 마주보게</li>
+<li>폰 A 화면 <b>전체가 프레임 안에</b> 들어오게. 너무 크게 잡아 잘리면 QR을 못 읽습니다</li>
+<li>초점을 폰 A 화면에 맞추고 <b>고정(AF 잠금)</b> — 화면을 길게 눌러 잠급니다</li>
+<li>거리 30cm를 줄자로 재기</li>
+</ul>
+
+<h4>시행 절차</h4>
+<ol>
+<li>폰 B 녹화 시작</li>
+<li>폰 A에서 <code>trial_01.mp4</code> 재생 (처음부터)</li>
+<li>재생이 끝나면 녹화 정지</li>
+<li>시행마다 파일 하나. <code>trial_01.mp4</code> … 순서대로</li>
+</ol>
+
+<h3 id="a4-3">4.3 노트북에서 판정</h3>
+<pre><span class="c"># 동적 QR</span>
+python -m airgap.experiments.screen_qr_recv --in-dir in\qr <span class="v">--distance-cm 30</span> `
+    --grid 1 --message "AIRGAP 20자 테스트문자열"
+
+<span class="c"># 밝기 변조</span>
+python -m airgap.experiments.screen_flicker_recv --in-dir in\flicker <span class="v">--distance-cm 30</span> `
+    --expected-payload "AIRGAP 20자 테스트문자열"</pre>
+
+<p>QR 쪽 CSV에는 <code>qr_symbols_seen</code> 열이 생깁니다. <b>몇 프레임에서 QR 몇 장을 실제로 읽었는지</b>가 남으므로, 격자 실험(7장)에서 이 값이 핵심 지표가 됩니다.</p>
+
+<div class="box">
+<span class="t">두 채널 비교가 M3의 답입니다</span>
+같은 31바이트 메시지에 대해 밝기 변조는 약 30초, QR은 몇 초입니다. 이 차이는 매질이 같고 하드웨어도 같으므로 <b>오직 공간 축을 쓰는가에서 옵니다.</b> 이 문장이 보고서 5.5절과 발표의 핵심입니다.
+</div>
+
+<!-- ═══════ 5 ═══════ -->
+<h2 id="a5"><span class="num">5</span>노트북 화면 경로 <span class="tag none">선택</span></h2>
+<div class="meta">
+  <div><span class="k">필요 기기</span><span class="v">노트북 1 + 폰 1</span></div>
+  <div><span class="k">경로</span><span class="v">B · 화면 + 녹화</span></div>
+</div>
+<p>폰이 한 대뿐이거나, 폰 화면보다 큰 노트북 화면으로 재보고 싶을 때 씁니다. 절차는 4장과 같고 <b>송신만 다릅니다.</b></p>
+<pre><span class="c"># --out-dir 없이 실행하면 노트북 화면에 직접 띄웁니다</span>
+python -m airgap.experiments.screen_qr_send --grid 1
+python -m airgap.experiments.screen_flicker_send --trials 10</pre>
+<p>밝기 변조는 시행마다 <kbd>Enter</kbd>를 눌러 시점을 맞춥니다. 폰 녹화를 먼저 시작한 뒤 누르세요. 판정은 4.3절과 동일합니다.</p>
+
+<div class="box">
+<span class="t">여유가 있으면 두 경로를 다 하세요</span>
+같은 조건(30cm, 같은 메시지)을 폰 화면과 노트북 화면으로 각각 재면 <b>화면 크기가 인식률에 미치는 영향</b>이 분리됩니다. 격자 실험의 "왜 꺾이는가"를 설명하는 근거가 됩니다.
+</div>
+
+<!-- ═══════ 6 ═══════ -->
+<h2 id="a6"><span class="num">6</span>웹캠 실시간 경로 <span class="tag none">있으면</span></h2>
+<p>0장의 확인에서 <code>True</code>가 나왔다면 <code>--in-dir</code> 없이 바로 돌릴 수 있습니다.</p>
+<pre>python -m airgap.experiments.screen_qr_recv --trials 5 --distance-cm 30 --grid 1
+python -m airgap.experiments.screen_flicker_recv --trials 10 --distance-cm 30 `
+    --expected-payload "AIRGAP 20자 테스트문자열"</pre>
+<div class="box">
+<span class="t">4장을 대체하지 말고 추가로 하세요</span>
+같은 조건을 두 경로로 재서 성공률을 비교하면 <b>"폰 녹화 경유가 실시간과 같은 결과를 주는가"</b>를 보인 것이 됩니다. 이 프로젝트는 측정 연구이므로 측정 방법 자체의 타당성을 보이는 것이 결과의 일부입니다.
+</div>
+
+<!-- ═══════ 7 ═══════ -->
+<h2 id="a7"><span class="num">7</span>격자 스윕 — 공간 축을 더 쓰면</h2>
+<div class="meta">
+  <div><span class="k">필요 기기</span><span class="v">4장과 동일</span></div>
+  <div><span class="k">소요 시간</span><span class="v">40분</span></div>
+  <div><span class="k">변인</span><span class="v">격자 1 / 2 / 3</span></div>
+</div>
+
+<div class="box warn">
+<span class="t">기본 메시지로는 한계점이 안 보입니다</span>
+기본 메시지는 K=2라 2×2 격자면 한 화면에 방울 4개가 다 들어가 <b>즉시 끝나버립니다.</b> 긴 문자열을 써서 K를 20 근처로 올리세요. 한글 100자면 약 300바이트, 조각 16B 기준 K≈19입니다.
+</div>
+
+<pre><span class="c"># 같은 긴 메시지로 세 조건. 메시지는 세 번 모두 똑같아야 합니다</span>
+python -m airgap.experiments.screen_qr_send --out-dir out\g1 --trials 5 --grid 1 --message "&lt;긴 문자열&gt;"
+python -m airgap.experiments.screen_qr_send --out-dir out\g2 --trials 5 --grid 2 --message "&lt;긴 문자열&gt;"
+python -m airgap.experiments.screen_qr_send --out-dir out\g3 --trials 5 --grid 3 --message "&lt;긴 문자열&gt;"
+
+<span class="c"># 판정 — --grid 값을 송신측과 맞춰 적어야 CSV에 조건이 바르게 남습니다</span>
+python -m airgap.experiments.screen_qr_recv --in-dir in\g2 --distance-cm 30 --grid 2 --message "&lt;긴 문자열&gt;"</pre>
+
+<h3>무엇을 보는가</h3>
+<p>CSV의 <code>qr_symbols_seen ÷ frames_seen</code>이 <b>프레임당 평균 심볼 수</b>입니다. 이상적으로는 격자 수의 제곱과 같아야 합니다.</p>
+<table>
+<thead><tr><th>격자</th><th>이론상 프레임당 심볼</th><th>실측</th><th>달성률</th><th>해석</th></tr></thead>
+<tbody>
+<tr><td class="c mono">1×1</td><td class="c mono">1</td><td class="blank c">—</td><td class="blank c">—</td><td>대조군</td></tr>
+<tr><td class="c mono">2×2</td><td class="c mono">4</td><td class="blank c">—</td><td class="blank c">—</td><td>3.5 이상이면 잘 나온 것</td></tr>
+<tr><td class="c mono">3×3</td><td class="c mono">9</td><td class="blank c">—</td><td class="blank c">—</td><td>5 이하로 떨어지면 여기가 한계</td></tr>
+</tbody>
+</table>
+<p>격자를 올리면 QR 한 장이 화면에서 <b>1/n 크기</b>로 줄어듭니다. 그래서 이 실험이 재는 것은 "n²배 빨라진다"가 아니라 <b>"몇 배까지 가다가 어디에서 꺾이는가"</b>입니다.</p>
+
+<!-- ═══════ 8 ═══════ -->
+<h2 id="a8"><span class="num">8</span>거리 · 차폐 · 각도</h2>
+
+<h3>차폐 — 시간 대비 효과가 가장 큽니다</h3>
+<p>앞의 어느 절차든 그대로 두고 <b>사이에 물건만 넣으면</b> 됩니다. 5분이면 하나가 끝나고, 발표에서 가장 인상적인 장면이 됩니다.</p>
+<table>
+<thead><tr><th>차폐물</th><th>음향 예상</th><th>가시광 예상</th><th>보이려는 것</th></tr></thead>
+<tbody>
+<tr><td>A4 용지 1장</td><td>통과</td><td>차단</td><td rowspan="4">매질이 도달 범위를 정하고,<br>그 범위가 곧 접근 제어가 된다</td></tr>
+<tr><td>책 (두꺼운 것)</td><td>약화</td><td>차단</td></tr>
+<tr><td>교실 문 (닫기)</td><td>크게 약화</td><td>차단</td></tr>
+<tr><td>투명 아크릴·유리</td><td>약화</td><td>통과</td></tr>
+</tbody>
+</table>
+<p>예상과 다르게 나오면 <b>그게 더 좋은 결과입니다.</b> 그대로 기록하고 왜 그런지 논의하세요.</p>
+
+<h3>거리 스윕</h3>
+<table>
+<thead><tr><th>채널</th><th>거리 수준</th><th>조건당 횟수</th></tr></thead>
+<tbody>
+<tr><td>음향</td><td class="mono">1 m / 2 m / 3 m / 5 m</td><td class="c">10</td></tr>
+<tr><td>가시광</td><td class="mono">30 cm / 60 cm / 100 cm</td><td class="c">5</td></tr>
+</tbody>
+</table>
+
+<h3>각도 <span class="tag none">여유 있으면</span></h3>
+<p>가시광만 해당. 정면 / 30° / 60°. 거리는 30cm로 고정합니다.</p>
+
+<!-- ═══════ 9 ═══════ -->
+<h2 id="a9"><span class="num">9</span>자주 나는 문제</h2>
+
+<details>
+<summary>녹음 파일이 m4a로 저장됩니다</summary>
+<p>녹음 앱 설정에서 WAV/무손실을 고르세요. 없으면 변환합니다.</p>
+<pre>ffmpeg -i in.m4a -ar 44100 -ac 1 out.wav</pre>
+<p>변환 후 <b>원본 m4a는 폴더에서 빼세요.</b> 같은 시행이 두 번 처리됩니다.</p>
+</details>
+
+<details>
+<summary>전부 "프리앰블 미검출"로 실패합니다</summary>
+<ul>
+<li>폰 A 볼륨이 최대인지, 이퀄라이저·음장효과가 꺼져 있는지</li>
+<li>녹음 앞뒤에 무음 1~2초가 있는지</li>
+<li>스피커와 마이크가 서로 마주보는지 (반대쪽을 향하고 있지 않은지)</li>
+<li>파일을 메신저로 옮겨 재압축되지 않았는지 — <b>USB로 다시 옮겨보세요</b></li>
+</ul>
+</details>
+
+<details>
+<summary>QR을 한 장도 못 읽습니다</summary>
+<ul>
+<li>폰 B의 초점이 폰 A 화면에 맞고 잠겨 있는지</li>
+<li>폰 A 화면 전체가 녹화 프레임 안에 들어오는지</li>
+<li>화면에 반사광(형광등)이 들어오지 않는지 — 각도를 조금 틀어보세요</li>
+<li>폰 A 밝기가 최대인지, 자동 밝기가 꺼져 있는지</li>
+<li>거리를 15cm로 좁혀 한 번 해보세요. 그래도 안 되면 설정 문제입니다</li>
+</ul>
+</details>
+
+<details>
+<summary>콘솔에서 한글과 표가 깨집니다</summary>
+<pre>chcp 65001</pre>
+<p>PowerShell을 열 때마다 한 번씩 실행하세요. 발표 리허설 때도 확인이 필요합니다.</p>
+</details>
+
+<details>
+<summary>같은 녹음인데 거리가 다르게 기록됐습니다</summary>
+<p>8월에 실제로 있었던 사고입니다. 원인은 <code>--distance-cm</code> 오기재였습니다. 지금 코드는 처리한 파일의 절대경로·수정 시각·크기를 로그에 남기고 원본을 실행 폴더에 복사해두므로 사후 확인이 가능합니다.</p>
+<p><b>이미 만들어진 측정 폴더는 고치지 마세요.</b> 새 실행 ID로 다시 재고, 오기재 사실만 따로 기록합니다.</p>
+</details>
+
+<details>
+<summary>시행 중간에 폰 화면이 꺼지거나 회전했습니다</summary>
+<p>그 시행은 버리고 다시 하세요. 대신 <b>버렸다는 사실을 기록지에 남기세요.</b> 몇 번을 버렸는지가 그 조건의 난이도를 말해줍니다.</p>
+</details>
+
+<!-- ═══════ 10 ═══════ -->
+<h2 id="a10"><span class="num">10</span>남은 일정</h2>
+<p class="lede">발표가 9월 10일입니다. 아래 순서대로 하시면 1~3번까지만 해도 보고서의 빈칸 대부분이 채워집니다.</p>
+<table>
+<thead><tr><th>순위</th><th>항목</th><th>소요</th><th>이것이 없으면</th></tr></thead>
+<tbody>
+<tr><td class="c mono">1</td><td>2장 · 기기 없이</td><td>30분</td><td>보고서 5.1절 공백</td></tr>
+<tr><td class="c mono">2</td><td>3장 · 음향 1m (고정 + 손)</td><td>1시간</td><td><b>M1 미완으로 남음</b></td></tr>
+<tr><td class="c mono">3</td><td>4장 · QR + 밝기변조</td><td>1.5시간</td><td><b>M3 미완, 핵심 표 공백</b></td></tr>
+<tr><td class="c mono">4</td><td>8장 · 차폐</td><td>30분</td><td>발표 임팩트 감소</td></tr>
+<tr><td class="c mono">5</td><td>7장 · 격자 스윕</td><td>40분</td><td>새 코드가 놀게 됨</td></tr>
+<tr><td class="c mono">6</td><td>8장 · 거리 스윕</td><td>2시간+</td><td>축 A 곡선 없음</td></tr>
+</tbody>
+</table>
+<p>4번(차폐)을 5번보다 앞에 둔 것은 <b>30분에 발표 재료 하나가 확실히 나오기 때문</b>입니다. 격자는 결과가 안 나올 수도 있습니다.</p>
+
+<!-- ═══════ 11 ═══════ -->
+<h2 id="a11" class="sheet"><span class="num">11</span>측정 기록지</h2>
+<p class="lede">인쇄해서 들고 다니세요. 실행 폴더 이름(run_id)을 반드시 적어야 나중에 CSV와 대조할 수 있습니다.</p>
+
+<table>
+<tbody>
+<tr><td style="width:22%">날짜 · 시각</td><td class="blank"></td><td style="width:22%">기록자</td><td class="blank"></td></tr>
+<tr><td>채널</td><td class="blank">음향 / QR / 밝기변조</td><td>경로</td><td class="blank">파일경유 / 화면 / 실시간</td></tr>
+<tr><td>거리 (실측)</td><td class="blank">cm</td><td>격자</td><td class="blank">1 / 2 / 3</td></tr>
+<tr><td>기기 고정</td><td class="blank">거치대 / 손</td><td>차폐물</td><td class="blank">없음 / </td></tr>
+<tr><td>메시지</td><td colspan="3" class="blank"></td></tr>
+<tr><td>run_id</td><td colspan="3" class="blank">data\raw\_________________________</td></tr>
+<tr><td>장소 · 소음</td><td colspan="3" class="blank"></td></tr>
+</tbody>
+</table>
+
+<table>
+<thead><tr><th style="width:8%">시행</th><th style="width:14%">성공</th><th style="width:20%">실패 원인</th><th>특이사항 (버린 시행, 중간 소음, 흔들림 등)</th></tr></thead>
+<tbody>
+<tr><td class="c mono">1</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">2</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">3</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">4</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">5</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">6</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">7</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">8</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">9</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+<tr><td class="c mono">10</td><td class="c blank">○ / ✕</td><td class="blank"></td><td class="blank"></td></tr>
+</tbody>
+</table>
+
+<table>
+<tbody>
+<tr><td style="width:22%">성공 / 시행</td><td class="blank">        /</td><td style="width:22%">성공률</td><td class="blank">%</td></tr>
+<tr><td>예상과 달랐던 점</td><td colspan="3" class="blank"></td></tr>
+<tr><td></td><td colspan="3" class="blank"></td></tr>
+<tr><td>다음에 바꿀 것</td><td colspan="3" class="blank"></td></tr>
+</tbody>
+</table>
+
+<div class="box" style="margin-top:1.5rem">
+<span class="t">기록 원칙</span>
+성능이 안 나왔다고 조건을 유리하게 바꾸지 마세요. 안 나온 그대로 적고 원인을 분석하는 것이 이 프로젝트의 규칙입니다. <b>예상과 달랐던 항목이 보고서에서 가장 값어치 있는 부분이 됩니다.</b>
+</div>
+
+</main>
+</div>
+</body>
+</html>

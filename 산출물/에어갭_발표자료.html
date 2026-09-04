@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>에어갭 — 인터넷 없이 정보를 보내는 물리 채널</title>
+<style>
+/* ────────────────────────────────────────────────────────────
+   발표장 노트북은 인터넷에 연결하지 않는다(시연 조건).
+   그래서 외부 폰트·스크립트·이미지를 일절 쓰지 않고
+   시스템 글꼴과 인라인 SVG만으로 구성한다.
+   ──────────────────────────────────────────────────────────── */
+:root{
+  --paper:#E9EDEF;        /* 방안지 느낌의 차가운 밝은 회색 */
+  --paper-deep:#DDE3E6;
+  --ink:#16202B;          /* 짙은 슬레이트 */
+  --ink-soft:#54636F;
+  --rule:#C3CBD1;
+  --sound:#0B6E7A;        /* 음향 채널 — 청록 */
+  --light:#A8146B;        /* 가시광 채널 — 마젠타 */
+  --stage-w:1600px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--paper-deep);
+  color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕","Segoe UI",sans-serif;
+  display:grid;place-items:center;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"D2Coding","Consolas","Menlo",monospace;font-feature-settings:"tnum"}
+
+/* 무대: 16:9를 유지하며 화면에 맞춰 축소된다.
+   글자 크기를 cqw로 잡아 무대와 함께 비례해 줄어든다. */
+#stage{
+  position:relative;
+  width:min(100vw, calc(100vh * 16 / 9));
+  height:min(100vh, calc(100vw * 9 / 16));
+  background:var(--paper);
+  container-type:size;
+  overflow:hidden;
+}
+.slide{
+  position:absolute; inset:0;
+  padding:5.2cqw 6cqw 4.4cqw;
+  display:none;
+  flex-direction:column;
+}
+.slide.on{display:flex}
+
+h2{font-size:4.1cqw;line-height:1.16;font-weight:700;letter-spacing:-.02em;max-width:26ch}
+h3{font-size:2.1cqw;font-weight:700;margin-bottom:.5em}
+p,li{font-size:1.72cqw;line-height:1.65;color:var(--ink);max-width:62ch}
+.lead{font-size:2.15cqw;line-height:1.55;max-width:44ch}
+.sub{color:var(--ink-soft)}
+.small{font-size:1.4cqw;line-height:1.6}
+.tiny{font-size:1.18cqw;color:var(--ink-soft)}
+
+/* 슬라이드 머리: 장 번호 대신 어느 단계인지 알려주는 구조 표시 */
+.kicker{
+  display:flex;align-items:baseline;gap:.9cqw;
+  font-size:1.25cqw;color:var(--ink-soft);
+  padding-bottom:.9cqw;margin-bottom:2.4cqw;
+  border-bottom:1px solid var(--rule);
+}
+.kicker b{font-weight:700;color:var(--ink)}
+.kicker .thread{margin-left:auto}
+.thread.sound{color:var(--sound)}
+.thread.light{color:var(--light)}
+
+.body{flex:1;display:flex;gap:4cqw;align-items:flex-start}
+.body.center{align-items:center}
+.col{flex:1;min-width:0}
+.col.narrow{flex:0 0 34%}
+.col.wide{flex:1.5}
+
+ul{list-style:none}
+li{position:relative;padding-left:1.5cqw;margin-bottom:.8cqw}
+li::before{
+  content:"";position:absolute;left:0;top:.72em;
+  width:.5cqw;height:1px;background:var(--ink-soft);
+}
+
+table{border-collapse:collapse;width:100%;font-size:1.45cqw}
+th,td{text-align:left;padding:.85cqw 1cqw;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:700;font-size:1.25cqw;color:var(--ink-soft);border-bottom:1.5px solid var(--ink)}
+td.num{text-align:right;font-family:"D2Coding","Consolas",monospace}
+tr.hi td{background:rgba(11,110,122,.09)}
+
+.note{
+  border-left:2px solid var(--ink);
+  padding:.5cqw 0 .5cqw 1.4cqw;
+  font-size:1.5cqw;line-height:1.6;color:var(--ink-soft);max-width:52ch;
+}
+.stat{display:flex;gap:3.4cqw;margin-top:1.6cqw}
+.stat div{border-top:2px solid var(--ink)}
+.stat .v{font-size:3.4cqw;font-weight:700;line-height:1.1;padding-top:.5cqw;font-family:"D2Coding","Consolas",monospace}
+.stat .k{font-size:1.25cqw;color:var(--ink-soft)}
+
+.tag{
+  display:inline-block;font-size:1.15cqw;padding:.25cqw .8cqw;
+  border:1px solid currentColor;border-radius:999px;
+}
+.tag.sound{color:var(--sound)}
+.tag.light{color:var(--light)}
+
+svg{display:block;width:100%;height:auto}
+.fig{width:100%}
+.fig figcaption{font-size:1.2cqw;color:var(--ink-soft);margin-top:.9cqw}
+
+/* ── 표지 ── */
+#s1{padding:0;justify-content:stretch}
+.cover{flex:1;display:grid;grid-template-rows:1fr auto;}
+.cover-art{position:relative;overflow:hidden;background:var(--paper)}
+.cover-text{padding:0 6cqw 4.6cqw;display:flex;align-items:flex-end;gap:4cqw}
+.cover-text h1{font-size:5.4cqw;line-height:1.08;font-weight:700;letter-spacing:-.03em;flex:1}
+.cover-meta{text-align:right;font-size:1.35cqw;line-height:1.9;color:var(--ink-soft);padding-bottom:.4cqw}
+
+/* 표지의 신호가 틈을 건너는 한 번의 움직임 */
+@keyframes cross{from{stroke-dashoffset:1400}to{stroke-dashoffset:0}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.slide.on .draw{stroke-dasharray:1400;animation:cross 2.6s cubic-bezier(.2,.7,.3,1) forwards}
+.slide.on .appear{opacity:0;animation:fadein .8s ease 2.1s forwards}
+@media (prefers-reduced-motion:reduce){
+  .slide.on .draw{animation:none;stroke-dasharray:none}
+  .slide.on .appear{opacity:1;animation:none}
+}
+
+/* ── 하단 진행 표시 ── */
+#bar{
+  position:absolute;left:6cqw;right:6cqw;bottom:2.1cqw;
+  display:flex;align-items:center;gap:1cqw;
+  font-size:1.15cqw;color:var(--ink-soft);
+}
+#track{flex:1;height:1px;background:var(--rule);position:relative}
+#fill{position:absolute;left:0;top:-1px;height:3px;background:var(--ink);width:0;transition:width .3s ease}
+#stage.cover-mode #bar{display:none}
+
+@media print{
+  body{background:#fff;display:block;overflow:visible}
+  #stage{width:100%;height:auto;container-type:normal}
+  .slide{display:flex !important;position:static;page-break-after:always;height:56vw;padding:4%}
+  #bar{display:none}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+
+<!-- ══════════ 1. 표지 ══════════ -->
+<section class="slide on" id="s1">
+  <div class="cover">
+    <div class="cover-art">
+      <svg viewBox="0 0 1600 620" preserveAspectRatio="xMidYMid meet" aria-label="두 기기 사이의 틈을 신호가 건너는 그림">
+        <!-- 방안지 -->
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M40 0H0V40" fill="none" stroke="#C3CBD1" stroke-width=".6" opacity=".5"/>
+          </pattern>
+        </defs>
+        <rect width="1600" height="620" fill="url(#grid)"/>
+
+        <!-- 왼쪽 기기 -->
+        <rect x="120" y="215" width="250" height="190" rx="6" fill="none" stroke="#16202B" stroke-width="2.5"/>
+        <text x="245" y="440" text-anchor="middle" font-size="21" fill="#54636F" font-family="sans-serif">보내는 기기</text>
+
+        <!-- 오른쪽 기기 -->
+        <rect x="1230" y="215" width="250" height="190" rx="6" fill="none" stroke="#16202B" stroke-width="2.5"/>
+        <text x="1355" y="440" text-anchor="middle" font-size="21" fill="#54636F" font-family="sans-serif">받는 기기</text>
+
+        <!-- 틈 -->
+        <line x1="800" y1="120" x2="800" y2="500" stroke="#C3CBD1" stroke-width="1" stroke-dasharray="5 7"/>
+        <text x="800" y="105" text-anchor="middle" font-size="20" fill="#54636F" font-family="sans-serif">네트워크 없음</text>
+
+        <!-- 음향: 종파 -->
+        <path class="draw" d="M370 275 q30 -34 60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0 t60 0"
+              fill="none" stroke="#0B6E7A" stroke-width="3" stroke-linecap="round"/>
+        <!-- 가시광: 구형파 -->
+        <path class="draw" d="M370 355 h40 v-34 h40 v34 h60 v-34 h40 v34 h80 v-34 h40 v34 h60 v-34 h60 v34 h40 v-34 h60 v34 h40 v-34 h40 v34 h60 v-34 h40 v34 h60 v-34 h40 v34 h50"
+              fill="none" stroke="#A8146B" stroke-width="3" stroke-linejoin="miter"/>
+
+        <g class="appear" font-family="sans-serif">
+          <text x="392" y="248" font-size="20" fill="#0B6E7A">소리</text>
+          <text x="392" y="398" font-size="20" fill="#A8146B">빛</text>
+        </g>
+      </svg>
+    </div>
+    <div class="cover-text">
+      <h1>인터넷 없이<br>정보를 보내는<br>물리 채널의 비교</h1>
+      <div class="cover-meta">
+        팀 에어갭<br>
+        박지훈 · 윤태림 · 조민준<br>
+        <span class="mono">2026 지식 나눔 학술제 ‘광장’</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 2. 문제 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>문제</b><span>왜 이걸 하는가</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2>노트북 두 대, 파일 하나.<br>인터넷도 USB도 없다면?</h2>
+      <p style="margin-top:1.6cqw">남는 것은 두 기기가 함께 있는 공간뿐입니다. 한쪽이 소리를 내면 다른 쪽 마이크가 듣고, 한쪽이 화면을 밝히면 다른 쪽 카메라가 봅니다.</p>
+      <p style="margin-top:.8cqw">이렇게 네트워크를 거치지 않고 물리 현상만으로 정보를 건너보내는 것을 <b>에어갭 통신</b>이라 합니다.</p>
+    </div>
+    <div class="col narrow">
+      <div class="note">비슷한 시도는 이미 여럿 공개돼 있습니다.<br><br>그런데 <b>소리와 빛 중 무엇이 얼마나 빠른지</b>, 그 차이가 어디서 오는지를 같은 조건에서 잰 자료는 찾지 못했습니다.</div>
+      <p style="margin-top:1.8cqw;font-size:1.9cqw;line-height:1.5"><b>그래서 만드는 대신<br>재기로 했습니다.</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3. 세 채널 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>구성</b><span>무엇을 만들었나</span></div>
+  <h2 style="font-size:3.2cqw;margin-bottom:2cqw">채널 세 개를 같은 구조 위에 올렸습니다</h2>
+  <div class="body">
+    <div class="col wide">
+      <table>
+        <tr><th>채널</th><th>매질 · 파동</th><th>부호화 축</th><th>한 번에 나르는 양</th></tr>
+        <tr><td><span class="tag sound">음향 FSK</span></td><td>공기 · 종파</td><td>시간</td><td>심볼당 1비트</td></tr>
+        <tr><td><span class="tag light">화면 밝기 변조</span></td><td>가시광 · 전자기파</td><td>시간</td><td>프레임당 1비트</td></tr>
+        <tr class="hi"><td><span class="tag light">동적 QR</span></td><td>가시광 · 전자기파</td><td>시간 <b>+ 공간</b></td><td>프레임당 수백 비트</td></tr>
+      </table>
+      <p class="small sub" style="margin-top:1.6cqw">밝기 변조와 QR은 매질도 하드웨어도 완전히 같습니다. 다른 것은 <b>공간 축을 쓰는가</b> 하나뿐이라, 성능 차이가 어디서 오는지 통제된 조건에서 볼 수 있습니다.</p>
+    </div>
+    <div class="col narrow">
+      <div class="note">음향과 밝기 변조는 부호화 축이 같습니다. 그래서 <b>매질만 바뀌었을 때</b> 무엇이 달라지는지를 볼 수 있는 짝이 됩니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4. 구조 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>구성</b><span>공정한 비교를 위한 설계</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.2cqw">채널마다 다른 부분은<br>맨 아래 한 층뿐입니다</h2>
+      <p style="margin-top:1.4cqw">위의 세 층은 어떤 채널이 있는지조차 모릅니다. 파운틴 부호도, 프레임 형식도, 오류 검사도, 측정 코드도 세 채널이 그대로 공유합니다.</p>
+      <div class="note" style="margin-top:1.6cqw">그래서 측정된 차이를 <b>구현의 우열이 아니라 물리적 성질의 차이</b>로 말할 수 있습니다. 이 구조 자체가 연구 결과의 일부입니다.</div>
+    </div>
+    <div class="col">
+      <svg viewBox="0 0 620 400" aria-label="계층 구조도">
+        <g font-family="sans-serif">
+          <rect x="20" y="20" width="580" height="72" rx="4" fill="none" stroke="#16202B" stroke-width="1.6"/>
+          <text x="44" y="52" font-size="21" fill="#16202B" font-weight="600">전송층 · 파운틴 부호</text>
+          <text x="44" y="76" font-size="15" fill="#54636F">조각을 흩뿌리고 다시 모은다</text>
+
+          <rect x="20" y="102" width="580" height="72" rx="4" fill="none" stroke="#16202B" stroke-width="1.6"/>
+          <text x="44" y="134" font-size="21" fill="#16202B" font-weight="600">프레임층 · 프리앰블 · CRC</text>
+          <text x="44" y="158" font-size="15" fill="#54636F">어디서 시작하는지, 깨지지 않았는지</text>
+
+          <rect x="20" y="184" width="580" height="56" rx="4" fill="none" stroke="#16202B" stroke-width="1.6"/>
+          <text x="44" y="219" font-size="21" fill="#16202B" font-weight="600">비트층 · 바이트 ↔ 0/1</text>
+
+          <text x="310" y="266" font-size="15" fill="#54636F" text-anchor="middle">여기까지는 채널을 모른다</text>
+          <line x1="20" y1="280" x2="600" y2="280" stroke="#C3CBD1" stroke-width="1" stroke-dasharray="4 6"/>
+
+          <rect x="20" y="298" width="184" height="82" rx="4" fill="rgba(11,110,122,.10)" stroke="#0B6E7A" stroke-width="1.6"/>
+          <text x="112" y="332" font-size="18" fill="#0B6E7A" text-anchor="middle" font-weight="600">음향 FSK</text>
+          <text x="112" y="356" font-size="14" fill="#0B6E7A" text-anchor="middle">파형</text>
+
+          <rect x="218" y="298" width="184" height="82" rx="4" fill="rgba(168,20,107,.10)" stroke="#A8146B" stroke-width="1.6"/>
+          <text x="310" y="332" font-size="18" fill="#A8146B" text-anchor="middle" font-weight="600">밝기 변조</text>
+          <text x="310" y="356" font-size="14" fill="#A8146B" text-anchor="middle">화면 밝기</text>
+
+          <rect x="416" y="298" width="184" height="82" rx="4" fill="rgba(168,20,107,.10)" stroke="#A8146B" stroke-width="1.6"/>
+          <text x="508" y="332" font-size="18" fill="#A8146B" text-anchor="middle" font-weight="600">동적 QR</text>
+          <text x="508" y="356" font-size="14" fill="#A8146B" text-anchor="middle">흑백 격자</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 5. 음향 FSK ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>기술</b><span>소리로 비트를 나르는 법</span><span class="thread sound">음향 채널</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.2cqw">높은 소리는 1,<br>낮은 소리는 0</h2>
+      <p style="margin-top:1.4cqw">소리의 높낮이는 공기 압력이 1초에 몇 번 오르내리는가, 곧 주파수입니다. 두 높낮이에 0과 1을 배정하면 소리로 비트를 보낼 수 있습니다.</p>
+      <div class="stat">
+        <div><div class="v">3k / 4k</div><div class="k">비트 0 / 1 의 주파수 (Hz)</div></div>
+        <div><div class="v">20</div><div class="k">심볼 길이 (ms)</div></div>
+        <div><div class="v">50</div><div class="k">원시 전송률 (bps)</div></div>
+      </div>
+      <div class="note" style="margin-top:1.8cqw">진폭이 아니라 주파수에 실은 이유 — 소리는 멀어지면 작아지지만 <b>높낮이는 변하지 않기 때문</b>입니다. 크기가 아니라 어느 쪽이 더 센가만 보면 됩니다.</div>
+    </div>
+    <div class="col">
+      <svg viewBox="0 0 600 330" aria-label="비트 0과 1에 대응하는 두 주파수 파형">
+        <g font-family="sans-serif">
+          <text x="0" y="26" font-size="17" fill="#54636F">보낼 비트</text>
+          <text x="120" y="26" font-size="22" fill="#16202B" font-family="monospace" letter-spacing="26">1 0 1</text>
+
+          <line x1="0" y1="60" x2="600" y2="60" stroke="#C3CBD1" stroke-width="1"/>
+          <line x1="200" y1="60" x2="200" y2="300" stroke="#C3CBD1" stroke-width="1" stroke-dasharray="3 5"/>
+          <line x1="400" y1="60" x2="400" y2="300" stroke="#C3CBD1" stroke-width="1" stroke-dasharray="3 5"/>
+
+          <!-- 1: 촘촘한 톤 -->
+          <path d="M4 160 q8 -46 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t12 0"
+                fill="none" stroke="#0B6E7A" stroke-width="2.6"/>
+          <!-- 0: 성긴 톤 -->
+          <path d="M204 160 q11 -46 22 0 t22 0 t22 0 t22 0 t22 0 t22 0 t22 0 t22 0 t20 0"
+                fill="none" stroke="#0B6E7A" stroke-width="2.6" opacity=".55"/>
+          <!-- 1 -->
+          <path d="M404 160 q8 -46 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t12 0"
+                fill="none" stroke="#0B6E7A" stroke-width="2.6"/>
+
+          <text x="100" y="238" font-size="16" fill="#0B6E7A" text-anchor="middle">4,000 Hz</text>
+          <text x="300" y="238" font-size="16" fill="#0B6E7A" text-anchor="middle" opacity=".7">3,000 Hz</text>
+          <text x="500" y="238" font-size="16" fill="#0B6E7A" text-anchor="middle">4,000 Hz</text>
+
+          <text x="300" y="290" font-size="16" fill="#54636F" text-anchor="middle">받는 쪽은 구간마다 두 주파수의 세기를 비교할 뿐입니다</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 6. 맞바꿈 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>기술</b><span>속도의 한계는 어디서 오는가</span><span class="thread sound">음향 채널</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.1cqw">심볼을 짧게 하면 빨라집니다.<br>그런데 어느 순간부터<br>주파수를 구별할 수 없습니다.</h2>
+      <p style="margin-top:1.4cqw">주파수란 반복되는 패턴이고, 반복을 확인하려면 여러 주기를 지켜봐야 합니다. 짧게 볼수록 <b>언제</b>는 정확해지지만 <b>어떤 높낮이</b>인지는 흐려집니다.</p>
+    </div>
+    <div class="col">
+      <div style="border:1px solid var(--rule);padding:2cqw 2.2cqw">
+        <p class="mono" style="font-size:1.8cqw;text-align:center;margin-bottom:1.2cqw">Δf = fs / N</p>
+        <table style="font-size:1.35cqw">
+          <tr><th>심볼 길이</th><th>주파수 분해능 Δf</th><th>간격 1,000 Hz 대비</th></tr>
+          <tr><td class="num">20 ms</td><td class="num">50 Hz</td><td>여유 20배</td></tr>
+          <tr><td class="num">2 ms</td><td class="num">500 Hz</td><td>여유 2배</td></tr>
+          <tr class="hi"><td class="num">0.5 ms</td><td class="num">2,000 Hz</td><td><b>구별 불가능</b></td></tr>
+        </table>
+      </div>
+      <div class="note" style="margin-top:1.6cqw">같은 부등식이 <b>신호를 골라내는 문제</b>에도 그대로 걸립니다. 빨리 판단하려고 짧게 보면 잘못 고릅니다. 전송과 선별은 하나의 제약에 묶여 있습니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 7. 가시광 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>기술</b><span>같은 빛, 다른 부호화 축</span><span class="thread light">가시광 채널</span></div>
+  <h2 style="font-size:3.1cqw;margin-bottom:1.8cqw">한 화면에 1비트냐, 수백 비트냐</h2>
+  <div class="body">
+    <div class="col">
+      <svg viewBox="0 0 520 260" aria-label="밝기 변조 개념도">
+        <g font-family="sans-serif">
+          <rect x="10" y="10" width="110" height="82" rx="3" fill="#16202B"/>
+          <rect x="140" y="10" width="110" height="82" rx="3" fill="#E9EDEF" stroke="#C3CBD1"/>
+          <rect x="270" y="10" width="110" height="82" rx="3" fill="#16202B"/>
+          <rect x="400" y="10" width="110" height="82" rx="3" fill="#E9EDEF" stroke="#C3CBD1"/>
+          <text x="65" y="122" font-size="20" fill="#54636F" text-anchor="middle" font-family="monospace">0</text>
+          <text x="195" y="122" font-size="20" fill="#54636F" text-anchor="middle" font-family="monospace">1</text>
+          <text x="325" y="122" font-size="20" fill="#54636F" text-anchor="middle" font-family="monospace">0</text>
+          <text x="455" y="122" font-size="20" fill="#54636F" text-anchor="middle" font-family="monospace">1</text>
+          <text x="10" y="176" font-size="19" fill="#A8146B" font-weight="600">밝기 변조 — 시간 축만</text>
+          <text x="10" y="204" font-size="16" fill="#54636F">화면 한 장이 비트 하나를 나릅니다.</text>
+          <text x="10" y="228" font-size="16" fill="#54636F">음향 FSK와 구조가 같습니다.</text>
+        </g>
+      </svg>
+    </div>
+    <div class="col">
+      <svg viewBox="0 0 520 260" aria-label="QR 개념도">
+        <g font-family="sans-serif">
+          <rect x="10" y="10" width="82" height="82" fill="none" stroke="#A8146B" stroke-width="1.5"/>
+          <g fill="#16202B">
+            <rect x="18" y="18" width="20" height="20"/><rect x="64" y="18" width="20" height="20"/>
+            <rect x="18" y="64" width="20" height="20"/><rect x="46" y="46" width="10" height="10"/>
+            <rect x="64" y="46" width="10" height="10"/><rect x="46" y="64" width="10" height="10"/>
+            <rect x="74" y="64" width="10" height="10"/><rect x="46" y="28" width="10" height="10"/>
+          </g>
+          <text x="112" y="58" font-size="34" fill="#C3CBD1">›</text>
+          <rect x="140" y="10" width="82" height="82" fill="none" stroke="#A8146B" stroke-width="1.5"/>
+          <g fill="#16202B">
+            <rect x="148" y="18" width="20" height="20"/><rect x="194" y="18" width="20" height="20"/>
+            <rect x="148" y="64" width="20" height="20"/><rect x="176" y="46" width="10" height="10"/>
+            <rect x="194" y="64" width="10" height="10"/><rect x="204" y="46" width="10" height="10"/>
+            <rect x="176" y="74" width="10" height="10"/>
+          </g>
+          <text x="242" y="58" font-size="34" fill="#C3CBD1">›</text>
+          <rect x="270" y="10" width="82" height="82" fill="none" stroke="#A8146B" stroke-width="1.5"/>
+          <g fill="#16202B">
+            <rect x="278" y="18" width="20" height="20"/><rect x="324" y="18" width="20" height="20"/>
+            <rect x="278" y="64" width="20" height="20"/><rect x="306" y="56" width="10" height="10"/>
+            <rect x="324" y="46" width="10" height="10"/><rect x="306" y="28" width="10" height="10"/>
+            <rect x="334" y="64" width="10" height="10"/>
+          </g>
+          <text x="10" y="176" font-size="19" fill="#A8146B" font-weight="600">동적 QR — 시간 + 공간 축</text>
+          <text x="10" y="204" font-size="16" fill="#54636F">화면 한 장이 2차원 격자를 통째로</text>
+          <text x="10" y="228" font-size="16" fill="#54636F">나릅니다. 매질과 장비는 왼쪽과 같습니다.</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <p class="small sub" style="margin-top:.6cqw;max-width:90ch">둘의 성능 차이는 온전히 <b>공간 축을 쓰는가</b>에서 옵니다. 매질도 화면도 카메라도 같기 때문입니다.</p>
+</section>
+
+<!-- ══════════ 8. 파운틴 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>기술</b><span>되돌아갈 길이 없을 때</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.1cqw">“3번 조각 다시 보내줘”라고<br>말할 방법이 없습니다</h2>
+      <p style="margin-top:1.4cqw">통신로가 한 방향뿐이기 때문입니다. 인터넷이 재전송으로 푸는 문제를 여기서는 다르게 풀어야 합니다.</p>
+      <p style="margin-top:.9cqw"><b>파운틴 부호</b>가 그 답입니다. 분수에서 물방울이 끝없이 떨어지듯, 원본 조각들을 무작위로 섞은 새 조각을 계속 흘려보냅니다. 받는 쪽은 <b>어느 것을 받았든</b> 컵을 채울 만큼만 모으면 원본을 복원합니다.</p>
+      <div class="note" style="margin-top:1.6cqw">조각 목록 대신 <b>난수 시드 하나</b>만 보냅니다. 양쪽이 같은 시드로 같은 절차를 돌리면 같은 목록이 재현되기 때문입니다.</div>
+    </div>
+    <div class="col">
+      <svg viewBox="0 0 560 340" aria-label="파운틴 부호의 XOR 조합">
+        <g font-family="sans-serif">
+          <text x="0" y="22" font-size="17" fill="#54636F">원본 조각</text>
+          <g>
+            <rect x="0" y="38" width="70" height="46" rx="3" fill="none" stroke="#16202B" stroke-width="1.6"/>
+            <rect x="86" y="38" width="70" height="46" rx="3" fill="none" stroke="#16202B" stroke-width="1.6"/>
+            <rect x="172" y="38" width="70" height="46" rx="3" fill="none" stroke="#16202B" stroke-width="1.6"/>
+            <rect x="258" y="38" width="70" height="46" rx="3" fill="none" stroke="#16202B" stroke-width="1.6"/>
+            <text x="35" y="68" font-size="19" text-anchor="middle" font-family="monospace">A</text>
+            <text x="121" y="68" font-size="19" text-anchor="middle" font-family="monospace">B</text>
+            <text x="207" y="68" font-size="19" text-anchor="middle" font-family="monospace">C</text>
+            <text x="293" y="68" font-size="19" text-anchor="middle" font-family="monospace">D</text>
+          </g>
+
+          <text x="0" y="140" font-size="17" fill="#54636F">흘려보내는 방울 (무작위 조합)</text>
+          <g font-family="monospace" font-size="18">
+            <rect x="0" y="156" width="132" height="42" rx="3" fill="rgba(11,110,122,.10)" stroke="#0B6E7A"/>
+            <text x="66" y="183" text-anchor="middle" fill="#0B6E7A">B</text>
+            <rect x="148" y="156" width="132" height="42" rx="3" fill="rgba(11,110,122,.10)" stroke="#0B6E7A"/>
+            <text x="214" y="183" text-anchor="middle" fill="#0B6E7A">A ⊕ C</text>
+            <rect x="296" y="156" width="132" height="42" rx="3" fill="rgba(11,110,122,.10)" stroke="#0B6E7A"/>
+            <text x="362" y="183" text-anchor="middle" fill="#0B6E7A">A ⊕ B ⊕ D</text>
+            <rect x="444" y="156" width="116" height="42" rx="3" fill="none" stroke="#C3CBD1" stroke-dasharray="4 4"/>
+            <text x="502" y="183" text-anchor="middle" fill="#C3CBD1">계속…</text>
+          </g>
+
+          <text x="0" y="248" font-size="17" fill="#54636F">푸는 순서</text>
+          <text x="0" y="278" font-size="17" fill="#16202B">B를 바로 확정 → A⊕B⊕D 에서 B를 지움</text>
+          <text x="0" y="304" font-size="17" fill="#16202B">→ A⊕D 남음 → A가 풀리면 D도 풀림</text>
+          <text x="0" y="330" font-size="16" fill="#54636F">이 연쇄가 끊기지 않도록 조합의 개수를 확률로 조절합니다</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 9. 파운틴 결과 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>결과</b><span>파운틴 부호는 얼마나 손해인가</span></div>
+  <div class="body center">
+    <div class="col narrow">
+      <h2 style="font-size:3cqw">절반을 잃어도<br>복원됩니다</h2>
+      <div class="stat" style="flex-direction:column;gap:1.6cqw;margin-top:1.6cqw">
+        <div><div class="v">50%</div><div class="k">인위적으로 버린 조각의 비율</div></div>
+        <div><div class="v">120/120</div><div class="k">복원 성공 (전 구간)</div></div>
+      </div>
+      <p class="small sub" style="margin-top:1.6cqw">재전송 요청이 불가능한 조건에 파운틴 부호가 맞는 이유입니다.</p>
+    </div>
+    <div class="col wide">
+      <h3>조각 수 K가 커질수록 손해가 줄어듭니다</h3>
+      <svg viewBox="0 0 660 260" aria-label="K에 따른 오버헤드 막대그래프">
+        <g font-family="sans-serif">
+          <line x1="60" y1="200" x2="640" y2="200" stroke="#16202B" stroke-width="1.4"/>
+          <line x1="60" y1="20" x2="60" y2="200" stroke="#C3CBD1" stroke-width="1"/>
+          <text x="52" y="26" font-size="14" fill="#54636F" text-anchor="end">2.0배</text>
+          <text x="52" y="115" font-size="14" fill="#54636F" text-anchor="end">1.5배</text>
+          <text x="52" y="204" font-size="14" fill="#54636F" text-anchor="end">1.0배</text>
+          <line x1="60" y1="110" x2="640" y2="110" stroke="#C3CBD1" stroke-width=".8" stroke-dasharray="3 5"/>
+
+          <!-- 1.0=200, 2.0=20 → y = 200 - (v-1)*180 -->
+          <rect x="110" y="38" width="86" height="162" fill="#0B6E7A" opacity=".85"/>
+          <rect x="250" y="54" width="86" height="146" fill="#0B6E7A" opacity=".85"/>
+          <rect x="390" y="96" width="86" height="104" fill="#0B6E7A" opacity=".85"/>
+          <rect x="530" y="135" width="86" height="65" fill="#0B6E7A" opacity=".85"/>
+
+          <g font-size="17" font-family="monospace" fill="#fff" text-anchor="middle">
+            <text x="153" y="62">1.90</text><text x="293" y="78">1.81</text>
+            <text x="433" y="120">1.58</text><text x="573" y="159">1.36</text>
+          </g>
+          <g font-size="16" fill="#16202B" text-anchor="middle">
+            <text x="153" y="226">K = 40</text><text x="293" y="226">K = 100</text>
+            <text x="433" y="226">K = 200</text><text x="573" y="226">K = 500</text>
+          </g>
+          <text x="350" y="252" font-size="14" fill="#54636F" text-anchor="middle">복원에 필요했던 방울 수 ÷ K · 조건당 120회</text>
+        </g>
+      </svg>
+      <p class="small sub" style="margin-top:.4cqw">이론이 예측한 방향과 일치합니다. 다만 조각을 잘게 쪼갤수록 프레임 머리말의 비중이 커지므로 최적점이 따로 있습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 10. base45 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>결과</b><span>QR을 더 작게 만들기</span><span class="thread light">가시광 채널</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3cqw">문자 수는 늘었는데<br>QR은 작아졌습니다</h2>
+      <p style="margin-top:1.4cqw">QR은 담는 내용의 문자 종류에 따라 모드가 달라집니다. 숫자와 대문자 45종만 쓰는 <b>영숫자 모드</b>는 문자 하나를 5.5비트에 담습니다. 아무 문자나 담는 모드는 8비트를 씁니다.</p>
+      <table style="margin-top:1.6cqw">
+        <tr><th>방식</th><th>1바이트당 문자</th><th>QR 안에서</th><th>손해</th></tr>
+        <tr><td>base64</td><td class="num">1.33자</td><td class="num">10.67비트</td><td class="num">33%</td></tr>
+        <tr class="hi"><td>base45</td><td class="num">1.50자</td><td class="num">8.25비트</td><td class="num">3%</td></tr>
+      </table>
+    </div>
+    <div class="col narrow">
+      <h3>같은 조각, 더 작은 QR</h3>
+      <div class="stat" style="flex-direction:column;gap:1.4cqw">
+        <div><div class="v">65 → 57</div><div class="k">QR 한 변의 모듈 수 (조각 192B)</div></div>
+        <div><div class="v">1.30배</div><div class="k">같은 화면 면적 대비 이득</div></div>
+      </div>
+      <div class="note" style="margin-top:1.6cqw">속도를 올리는 다른 방법들은 대개 카메라가 읽을 여유를 깎습니다. 이 방법만은 <b>QR이 작아져 인식에 오히려 유리</b>합니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 11. 격자 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>실험</b><span>공간 축을 더 쓰면 어떻게 되는가</span><span class="thread light">가시광 채널</span></div>
+  <div class="body center">
+    <div class="col narrow">
+      <h2 style="font-size:2.9cqw">한 화면에<br>QR을 여러 장</h2>
+      <p style="margin-top:1.2cqw">같은 하드웨어, 같은 화면 갱신 속도에서 <b>공간 축만 더 쓰는</b> 조건입니다.</p>
+      <div class="note" style="margin-top:1.4cqw">공짜는 아닙니다. 격자를 올리면 QR 한 장이 화면에서 <b>1/n 크기</b>로 줄어듭니다.<br><br>그래서 이 실험이 재는 것은 “n²배 빨라진다”가 아니라 <b>“어디에서 꺾이는가”</b>입니다.</div>
+    </div>
+    <div class="col">
+      <svg viewBox="0 0 620 250" aria-label="1x1, 2x2, 3x3 격자 비교">
+        <g font-family="sans-serif">
+          <rect x="20" y="20" width="150" height="150" fill="none" stroke="#A8146B" stroke-width="1.6"/>
+          <rect x="42" y="42" width="106" height="106" fill="#16202B" opacity=".14"/>
+          <text x="95" y="102" font-size="20" text-anchor="middle" fill="#A8146B" font-family="monospace">1</text>
+          <text x="95" y="196" font-size="17" text-anchor="middle" fill="#16202B">1×1 · 대조군</text>
+          <text x="95" y="220" font-size="15" text-anchor="middle" fill="#54636F">방울 1개</text>
+
+          <g>
+            <rect x="235" y="20" width="150" height="150" fill="none" stroke="#A8146B" stroke-width="1.6"/>
+            <rect x="246" y="31" width="62" height="62" fill="#16202B" opacity=".14"/>
+            <rect x="312" y="31" width="62" height="62" fill="#16202B" opacity=".14"/>
+            <rect x="246" y="97" width="62" height="62" fill="#16202B" opacity=".14"/>
+            <rect x="312" y="97" width="62" height="62" fill="#16202B" opacity=".14"/>
+            <text x="310" y="196" font-size="17" text-anchor="middle" fill="#16202B">2×2</text>
+            <text x="310" y="220" font-size="15" text-anchor="middle" fill="#54636F">방울 4개</text>
+          </g>
+
+          <g>
+            <rect x="450" y="20" width="150" height="150" fill="none" stroke="#A8146B" stroke-width="1.6"/>
+            <g fill="#16202B" opacity=".14">
+              <rect x="458" y="28" width="42" height="42"/><rect x="504" y="28" width="42" height="42"/><rect x="550" y="28" width="42" height="42"/>
+              <rect x="458" y="74" width="42" height="42"/><rect x="504" y="74" width="42" height="42"/><rect x="550" y="74" width="42" height="42"/>
+              <rect x="458" y="120" width="42" height="42"/><rect x="504" y="120" width="42" height="42"/><rect x="550" y="120" width="42" height="42"/>
+            </g>
+            <text x="525" y="196" font-size="17" text-anchor="middle" fill="#16202B">3×3</text>
+            <text x="525" y="220" font-size="15" text-anchor="middle" fill="#54636F">방울 9개</text>
+          </g>
+        </g>
+      </svg>
+      <p class="small sub" style="margin-top:1cqw">받는 쪽은 화면을 잘라 나누지 않습니다. 인식기가 한 이미지 안의 QR을 모두 찾아주기 때문에, 화면이 화각 어디에 걸렸든 상관없습니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 12. 시연 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>시연</b><span>지금 보여드릴 것</span></div>
+  <h2 style="font-size:3.2cqw;margin-bottom:1.8cqw">인터넷이 꺼진 노트북 두 대</h2>
+  <div class="body">
+    <div class="col">
+      <h3 style="color:var(--sound)">하나 — 소리로 대화하기</h3>
+      <ul>
+        <li>두 노트북 모두 와이파이를 끕니다.</li>
+        <li>한쪽에서 문장을 입력하면 스피커가 소리를 냅니다.</li>
+        <li>다른 쪽 마이크가 듣고 화면에 문장이 뜹니다.</li>
+        <li>화면에는 주고받은 기록과 신호 상태가 함께 보입니다.</li>
+      </ul>
+      <p class="small sub" style="margin-top:1cqw">사람 귀에는 삐 소리로만 들립니다. 무슨 글자인지는 들리지 않습니다.</p>
+    </div>
+    <div class="col">
+      <h3 style="color:var(--light)">둘 — 빛으로 파일 보내기</h3>
+      <ul>
+        <li>보내는 노트북 화면에 QR이 빠르게 바뀝니다.</li>
+        <li>받는 쪽 카메라가 그것을 계속 찍습니다.</li>
+        <li>몇 장을 놓쳐도 됩니다. 필요한 만큼만 모이면 끝납니다.</li>
+        <li>초당 몇 장을 읽었는지, 몇 조각이 풀렸는지가 실시간으로 표시됩니다.</li>
+      </ul>
+      <p class="small sub" style="margin-top:1cqw">중간에 손으로 카메라를 가려도 복원은 이어집니다.</p>
+    </div>
+  </div>
+  <div class="note" style="margin-top:1cqw;max-width:none">셋 — 같은 방의 <b>다른 기기들도 동시에 받습니다</b>. 이 채널들은 인증 없이 방 전체에 뿌리기 때문입니다.</div>
+</section>
+
+<!-- ══════════ 13. 실패 대비 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>시연</b><span>안 될 수도 있습니다</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.1cqw">발표장은 조명도 소음도<br>통제되지 않습니다</h2>
+      <p style="margin-top:1.4cqw">이것은 변명이 아니라 저희가 실제로 겪은 일입니다. 소프트웨어에서 완벽하게 복원되던 신호가, 10 cm 거리의 실제 공기를 건너오자 <b>열 번 중 네 번</b>만 성공했습니다.</p>
+      <div class="note" style="margin-top:1.5cqw">알고리즘이 맞다는 것은 시작일 뿐 아무것도 보장하지 않는다 — 이 프로젝트에서 얻은 가장 큰 교훈입니다.</div>
+    </div>
+    <div class="col narrow">
+      <h3>그래서 준비한 것</h3>
+      <ul>
+        <li>미리 녹화한 시연 영상</li>
+        <li>거리를 좁힌 근접 조건</li>
+        <li>실패해도 진행되는 발표 순서</li>
+      </ul>
+      <p class="small sub" style="margin-top:1.2cqw">실패하면 실패한 대로 보여드리고, 왜 실패했는지 설명하겠습니다. 그것도 결과입니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 14. 차별점 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>정리</b><span>우리가 다르게 물은 것</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3cqw">이 기술은 저희가<br>처음 만든 게 아닙니다</h2>
+      <p style="margin-top:1.4cqw">파운틴 부호를 QR에 실어 파일을 보내는 구현도, 소리로 문자를 주고받는 앱도 이미 공개돼 있습니다. 원리에서 새로운 것은 없습니다.</p>
+      <p style="margin-top:.9cqw">저희의 기여는 발명이 아니라 <b>측정</b>입니다.</p>
+    </div>
+    <div class="col">
+      <table>
+        <tr><th></th><th>공개된 사례들</th><th>이 연구</th></tr>
+        <tr><td>목적</td><td class="sub">“이 방식이 된다”</td><td><b>“무엇이 얼마나 빠른가”</b></td></tr>
+        <tr><td>채널 수</td><td class="sub">하나</td><td><b>셋 (같은 구조 위)</b></td></tr>
+        <tr><td>비교</td><td class="sub">없음</td><td><b>매질·부호화 축별</b></td></tr>
+        <tr class="hi"><td>다루는 축</td><td class="sub">전송만</td><td><b>전송과 선별을<br>하나의 제약으로</b></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 15. 마무리 ══════════ -->
+<section class="slide">
+  <div class="kicker"><b>정리</b><span>맺음</span></div>
+  <div class="body center">
+    <div class="col">
+      <h2 style="font-size:3.4cqw;max-width:22ch">소리와 빛은 같은 제약 아래에서<br>서로 다른 답을 냅니다</h2>
+      <p style="margin-top:1.8cqw;font-size:1.9cqw;line-height:1.6;max-width:44ch">빠르게 보내려 해도, 원하는 것만 골라내려 해도, 결국 같은 부등식에 걸립니다. 짧게 볼수록 언제인지는 정확해지고 무엇인지는 흐려집니다.</p>
+      <p style="margin-top:1.4cqw" class="sub">그리고 통신의 안전성은 암호만의 문제가 아니라, 정보가 지나가는 물리적 경로와 그것을 감지하는 감각의 한계에까지 걸쳐 있습니다.</p>
+    </div>
+    <div class="col narrow">
+      <div style="border-top:2px solid var(--ink);padding-top:1.4cqw">
+        <p style="font-size:1.6cqw;line-height:1.9">팀 에어갭<br><b>박지훈 · 윤태림 · 조민준</b></p>
+        <p class="tiny" style="margin-top:1.2cqw">질문 받겠습니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="bar">
+  <span class="mono" id="idx">02</span>
+  <div id="track"><div id="fill"></div></div>
+  <span>에어갭</span>
+</div>
+
+</div>
+
+<script>
+(function(){
+  const slides=[...document.querySelectorAll('.slide')];
+  const stage=document.getElementById('stage');
+  const fill=document.getElementById('fill');
+  const idx=document.getElementById('idx');
+  let i=0;
+
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+    stage.classList.toggle('cover-mode', i===0);
+    fill.style.width=((i)/(slides.length-1)*100)+'%';
+    idx.textContent=String(i+1).padStart(2,'0');
+    location.hash=i+1;
+  }
+  function next(){show(i+1)} function prev(){show(i-1)}
+
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();next()}
+    else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev()}
+    else if(e.key==='Home'){show(0)} else if(e.key==='End'){show(slides.length-1)}
+  });
+  stage.addEventListener('click',e=>{
+    (e.clientX < window.innerWidth*0.25) ? prev() : next();
+  });
+
+  const start=parseInt(location.hash.slice(1),10);
+  show(Number.isFinite(start)&&start>0 ? start-1 : 0);
+})();
+</script>
+</body>
+</html>
