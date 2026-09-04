@@ -96,3 +96,45 @@ def test_wav_roundtrip(tmp_path):
     assert sample_rate == channel.config.sample_rate_hz
     received = channel.demodulate(signal_from_file)
     assert np.array_equal(received[: len(bits)], bits)
+
+
+def test_screen_qr_survives_a_long_run_of_zero_bytes():
+    """0으로 채워진 페이로드도 QR로 만들어지고 그대로 되돌아와야 한다.
+
+    파운틴 조각의 마지막 하나는 원본 길이를 맞추려고 0으로 채워지므로, 이건
+    드문 경우가 아니라 파일을 보낼 때 거의 항상 생기는 경우다. 스크램블
+    (screen_qr.py의 _scramble)이 빠지면 여기서 QR 생성이 실패한다.
+    """
+    channel = ScreenQr(ScreenQrConfig())
+    payload = b"AIRGAP" + bytes(192)  # 뒤쪽 192바이트가 전부 0
+    bits = bytes_to_bits(frame.build_frame(seed=0, payload=payload))
+
+    received = channel.demodulate(channel.modulate(bits))
+    parsed = frame.parse_frame(bits_to_bytes(_trim_to_bytes(received)))
+
+    assert parsed is not None
+    assert parsed.payload == payload
+
+
+def test_screen_qr_still_reads_legacy_base64_symbols():
+    """2026-09-03 이전에 base64로 찍어둔 측정 원본을 지금 코드로도 읽을 수 있어야 한다.
+
+    CLAUDE.md 규칙 3(측정 원본은 손대지 않는다)의 실질적 조건이다 — 원본이
+    남아 있어도 지금 코드가 못 읽으면 보존한 의미가 없다.
+    """
+    import base64
+
+    import numpy as np
+    import qrcode
+
+    frame_bytes = frame.build_frame(seed=1, payload=b"hello airgap")
+    qr = qrcode.QRCode(box_size=6, border=4)
+    qr.add_data(base64.b64encode(frame_bytes))  # 예전 방식 그대로
+    qr.make(fit=True)
+    legacy_image = np.array(
+        qr.make_image(fill_color="black", back_color="white").convert("L"), dtype=np.uint8
+    )
+
+    received = ScreenQr(ScreenQrConfig()).demodulate(legacy_image)
+
+    assert frame.parse_frame(bits_to_bytes(_trim_to_bytes(received))) is not None

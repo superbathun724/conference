@@ -150,6 +150,18 @@ class LtDecoder:
     def is_complete(self) -> bool:
         return len(self._decoded) == self.k
 
+    @property
+    def decoded_count(self) -> int:
+        """지금까지 확정된 원본 조각 수. 진행도 표시용 읽기 전용 값이다.
+
+        데모 화면(`demo/screen_qr_demo.py`)이 "K개 중 몇 개가 풀렸나"를 보여주려면
+        이 값이 필요한데, 바깥에서 `_decoded`를 직접 들여다보게 두면 디코더 내부
+        구조가 바뀔 때마다 같이 깨진다. 읽기만 하는 값이라 복원 동작에는 아무
+        영향이 없고, 모든 채널이 같은 디코더를 쓰므로 채널 간 공정 비교
+        (CLAUDE.md 규칙 5)에도 어긋나지 않는다.
+        """
+        return len(self._decoded)
+
     def add_droplet(self, seed: int, payload: bytes) -> None:
         self.droplets_received += 1
         if self.is_complete:

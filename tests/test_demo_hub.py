@@ -46,3 +46,33 @@ def test_elapsed_s_is_non_negative():
     hub = DemoHub(channel_name="acoustic_fsk")
 
     assert hub.snapshot().elapsed_s >= 0.0
+
+
+def test_update_sets_numeric_fields():
+    hub = DemoHub(channel_name="screen_qr")
+
+    hub.update(frames_seen=12, chunks_total=5)
+
+    stats = hub.snapshot()
+    assert stats.frames_seen == 12
+    assert stats.chunks_total == 5
+
+
+def test_update_rejects_unknown_field():
+    hub = DemoHub(channel_name="screen_qr")
+
+    try:
+        hub.update(capure_fps=1.0)  # 오타
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("오타 난 필드명은 KeyError로 걸러져야 한다")
+
+
+def test_numeric_fields_default_to_zero_for_acoustic_demo():
+    hub = DemoHub(channel_name="acoustic_fsk")
+
+    stats = hub.snapshot()
+
+    assert stats.chunks_total == 0
+    assert stats.banner is None

@@ -88,6 +88,24 @@ class ChatReceiver:
         if len(self._buffer) > self._max_buffer_len:
             self._buffer = self._buffer[-self._max_buffer_len :]
 
+    def reset_buffer(self) -> None:
+        """누적된 오디오를 비운다 (이미 처리한 메시지 목록은 그대로 둔다).
+
+        `try_decode()`는 버퍼에서 **가장 앞에 있는** 프리앰블만 본다. 그래서 메시지
+        하나를 읽어낸 뒤에도 그 소리가 버퍼에 남아 있으면, 다음 메시지가 뒤에
+        들어와도 계속 앞의 프레임만 다시 찾아내고(이미 처리했으므로 None) 뒤엣것을
+        영영 못 읽는다 — 앞의 소리가 버퍼 길이(기본 8초)를 지나 밀려날 때까지.
+        메시지를 성공적으로 읽은 직후 이걸 불러 버퍼를 비우면 그 상황을 피한다.
+
+        대가: 다음 메시지의 앞부분이 이미 버퍼에 들어와 있었다면 그 부분을 함께
+        버린다. 메시지 사이에 침묵 구간을 두는 이유가 이것이다
+        (`acoustic_demo.build_demo_signal`의 gap_s).
+
+        채팅 데모(`main()`)는 사람이 번갈아 입력하는 속도라 이 상황이 잘 안 생겨서
+        부르지 않는다 — 한 파일에 메시지를 여러 개 담는 단방향 데모에서만 쓴다.
+        """
+        self._buffer = np.zeros(0, dtype=np.float64)
+
     def feed(self, chunk: np.ndarray) -> str | None:
         """append() + try_decode()를 한 번에 — 테스트나 간단한 사용에 편의상 둔 것."""
         self.append(chunk)

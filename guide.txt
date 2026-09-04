@@ -150,15 +150,36 @@ D-1. 노트북 화면 + 웹캠(또는 웹캠 앱 연결한 폰)
 
     python -m airgap.experiments.screen_qr_send --message "AIRGAP 20자 테스트문자열"
 
+   --out-dir을 주면 노트북 화면에 띄우는 대신 시행별 동영상을 써낸다.
+   음향 채널의 --out-dir(WAV 저장)과 같은 성격의 경로다.
+
+       python -m airgap.experiments.screen_qr_send --out-dir out\qr --trials 5 --grid 1
+       python -m airgap.experiments.screen_flicker_send --out-dir out\flicker --trials 10
+
+   폰 A에서 전체화면·최대 밝기·자동회전 끄고 순서대로 재생하고, 폰 B로
+   녹화한 뒤 그 파일들을 각 수신 스크립트의 --in-dir로 넘긴다.
+   노트북 화면도 웹캠도 없이 안드로이드 두 대만으로 측정할 수 있다.
+
    Enter로 시작, 0.5초 간격(기본)으로 최대 --max-frames(기본60)까지 표시.
    fullscreen 여부는 config\channels\screen_qr.yaml.
+
+   --grid n을 주면 한 화면에 QR을 n x n장 동시에 띄운다(기본 1).
+   * 밝기 변조와 비교하는 측정(M3 완료 조건)은 반드시 --grid 1로 할 것.
+     격자를 켜고 재면 두 채널의 조건이 달라져 비교가 성립하지 않는다.
+   * 격자 스윕(1/2/3)은 QR 채널 안에서만 도는 별도 실험이다. 송신측 --grid와
+     수신측 --grid를 같은 값으로 적어야 CSV에 조건이 바르게 남는다
+     (--distance-cm과 같은 성격의 기록용 인자다).
+   * n을 올리면 QR 한 장이 화면에서 1/n 크기로 줄어드니, 어느 n부터
+     인식이 무너지는지를 보는 것이 이 실험의 목적이다.
 
 4단계 — 수신측 Enter로 촬영 시작 후 카메라를 화면에 비춘다.
    필요한 만큼 방울이 모이면 자동 종료.
 
 5단계 — 결과: data\raw\<날짜시각>_screen_qr_manual\trials.csv
    (컬럼: trial, distance_cm, k, success, decoded_payload,
-   droplets_received, frames_seen, reason)
+   droplets_received, frames_seen, qr_symbols_seen, grid, reason)
+   qr_symbols_seen은 실제로 읽어낸 QR 장수라 격자가 몇 장이나 살아남았는지를
+   보여준다 — grid=2인데 프레임당 평균 4장에 훨씬 못 미치면 인식이 꺾인 것이다.
    reason: "제한 시간 내 방울 부족"=거리↓ 또는 --duration-s↑,
            "복원됐으나 원문과 다름"=--message 확인.
 
