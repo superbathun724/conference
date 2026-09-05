@@ -3,6 +3,9 @@ fps: 30.0
 symbol_duration_ms: 100.0
 level0: 0.05
 level1: 0.95
-preamble_detect_threshold: 0.3
+# 카메라 자동 노출 같은 느린 밝기 변동을 걷어내는 이동 중앙값 창(초). 0이면 끔 (2026-09-05)
+drift_window_s: 3.0
+# 정규화 상호상관(NCC, -1~1) 임계치. 잡음만으로도 최댓값이 0.75까지 나오므로 0.8로 둔다 (2026-09-05)
+preamble_detect_threshold: 0.8
 camera_index: null
 fullscreen: true
