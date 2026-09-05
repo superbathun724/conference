@@ -1,4 +1,4 @@
 # LT 파운틴 부호 파라미터. airgap/core/fountain.py의 LtConfig와 1:1 대응.
-chunk_size_bytes: 16
+chunk_size_bytes: 64
 c: 0.1       # 로버스트 솔리톤 분포의 스파이크 폭 계수 (클수록 스파이크가 넓어짐)
 delta: 0.05  # 목표 복호 실패 확률 상한
