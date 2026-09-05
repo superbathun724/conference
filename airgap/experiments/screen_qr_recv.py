@@ -154,6 +154,7 @@ def main() -> None:
     )
     parser.add_argument("--camera-index", type=int, default=None, help="카메라 장치 인덱스")
     parser.add_argument(
+<<<<<<< HEAD
         "--chunk-size",
         type=int,
         default=None,
@@ -166,6 +167,8 @@ def main() -> None:
         help="송신측이 --file로 보낸 원본 파일. K 계산과 복원 대조에 쓴다",
     )
     parser.add_argument(
+=======
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
         "--grid",
         type=int,
         default=1,
@@ -216,7 +219,11 @@ def main() -> None:
             trials,
             args.distance_cm,
         )
+<<<<<<< HEAD
         log.info("k=%d payload=%s grid=%dx%d", k, payload_label, args.grid, args.grid)
+=======
+        log.info("k=%d message=%r grid=%dx%d", k, args.message, args.grid, args.grid)
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
         # 폴더를 잘못 지정해 예전 파일을 다시 읽는 실수를 실행 도중 바로 알아챌 수 있게,
         # 처리 전에 각 파일의 실제 수정 시각을 로그로 나열한다
         # (2026-08-21 음향 채널 --distance-cm 오기재 사고 참고, acoustic_recv.py와 동일).
@@ -232,13 +239,21 @@ def main() -> None:
         trial_files = None
         trials = args.trials
         log.info(
+<<<<<<< HEAD
             "설정: run_id=%s trials=%d duration_s=%s distance_cm=%s k=%d payload=%s grid=%dx%d",
+=======
+            "설정: run_id=%s trials=%d duration_s=%s distance_cm=%s k=%d message=%r grid=%dx%d",
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
             run_id,
             trials,
             args.duration_s,
             args.distance_cm,
             k,
+<<<<<<< HEAD
             payload_label,
+=======
+            args.message,
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
             args.grid,
             args.grid,
         )

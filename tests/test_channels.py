@@ -138,6 +138,7 @@ def test_screen_qr_still_reads_legacy_base64_symbols():
     received = ScreenQr(ScreenQrConfig()).demodulate(legacy_image)
 
     assert frame.parse_frame(bits_to_bytes(_trim_to_bytes(received))) is not None
+<<<<<<< HEAD
 
 
 # ---- 2026-09-05 실기기 실패 원인에 대한 회귀 테스트 ----
@@ -210,3 +211,5 @@ def test_flicker_survives_auto_exposure_compression_and_drift():
     signal = signal + rng.normal(0, 0.02, len(signal))
 
     assert _recovers(channel, channel.demodulate(signal))
+=======
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d

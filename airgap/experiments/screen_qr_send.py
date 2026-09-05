@@ -67,6 +67,7 @@ def main() -> None:
     parser.add_argument("--message", default=DEFAULT_MESSAGE, help="보낼 문자열")
     parser.add_argument("--max-frames", type=int, default=60, help="화면에 띄울 최대 QR 프레임 수")
     parser.add_argument(
+<<<<<<< HEAD
         "--chunk-size",
         type=int,
         default=None,
@@ -79,6 +80,8 @@ def main() -> None:
         help="--message 대신 이 파일의 내용을 보낸다 (이미지 등 큰 페이로드). 수신측도 같은 --file",
     )
     parser.add_argument(
+=======
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
         "--grid",
         type=int,
         default=1,
@@ -121,9 +124,15 @@ def main() -> None:
 
     per_screen = qr_grid.droplets_per_screen(args.grid)
     log.info(
+<<<<<<< HEAD
         "설정: payload=%s k=%d chunk_size_bytes=%d max_frames=%d display_ms=%s "
         "grid=%dx%d (화면당 방울 %d개)",
         payload_label,
+=======
+        "설정: message=%r k=%d chunk_size_bytes=%d max_frames=%d display_ms=%s "
+        "grid=%dx%d (화면당 방울 %d개)",
+        args.message,
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
         k,
         fountain_config.chunk_size_bytes,
         args.max_frames,
@@ -174,9 +183,16 @@ def main() -> None:
         log.info(
             "완료: 동영상 %d개를 %s에 저장. 폰 A에서 전체화면·최대 밝기·자동회전 끄고 순서대로"
             " 재생하고, 폰 B로 녹화한 뒤 그 파일들을 screen_qr_recv.py --in-dir로 넘길 것"
+<<<<<<< HEAD
             " (수신측에도 같은 --message 또는 --file, 그리고 --grid %d 를 넘길 것)",
             args.trials,
             args.out_dir,
+=======
+            " (--message %r, --grid %d 를 똑같이 맞출 것)",
+            args.trials,
+            args.out_dir,
+            args.message,
+>>>>>>> 8d68fdcdc1abbdf089a6ee4b2bbe3993cab1d85d
             args.grid,
         )
         return
